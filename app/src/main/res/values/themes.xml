@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.ElectronicMuezzin" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.ElectronicMuezzin" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
     </style>
 
-    <style name="Theme.ElectronicMuezzin.FullScreen" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.ElectronicMuezzin.FullScreen" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
-        <item name="android:windowShowWhenLocked">true</item>
-        <item name="android:windowTurnScreenOn">true</item>
-        <item name="android:windowDismissKeyguard">true</item>
+        <item name="android:showWhenLocked">true</item>
+        <item name="android:turnScreenOn">true</item>
+        <item name="android:dismissKeyguard">true</item>
     </style>
 
     <style name="Theme.ElectronicMuezzin.SplashScreen" parent="Theme.SplashScreen">
