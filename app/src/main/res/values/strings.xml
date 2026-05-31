@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">المؤذن الإلكتروني</string>
+    <string name="prayer_fajr">الفجر</string>
+    <string name="prayer_sunrise">الشروق</string>
+    <string name="prayer_dhuhr">الظهر</string>
+    <string name="prayer_asr">العصر</string>
+    <string name="prayer_maghrib">المغرب</string>
+    <string name="prayer_isha">العشاء</string>
+    <string name="next_prayer">الصلاة القادمة</string>
+    <string name="qibla_direction">اتجاه القبلة</string>
+    <string name="adhkar">الأذكار</string>
+    <string name="calendar">التقويم</string>
+    <string name="settings">الإعدادات</string>
+    <string name="location_permission_rationale">يحتاج التطبيق إلى الموقع لحساب مواقيت الصلاة</string>
+    <string name="notification_permission_rationale">يحتاج التطبيق إلى الإذن لإرسال تنبيهات الأذان</string>
+    <string name="azan_time">حان وقت %s</string>
+    <string name="stop_azan">إيقاف الأذان</string>
+    <string name="ramadan_iftar">حان وقت الإفطار</string>
+    <string name="ramadan_suhoor">وقت السحور</string>
+</resources>

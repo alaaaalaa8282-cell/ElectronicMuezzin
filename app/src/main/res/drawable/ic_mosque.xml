@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- خلفية -->
+    <path
+        android:fillColor="#0D1B2A"
+        android:pathData="M0,0h108v108h-108z" />
+
+    <!-- قبة المسجد الرئيسية -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M54,18 C44,18 36,26 36,36 L36,45 L72,45 L72,36 C72,26 64,18 54,18Z" />
+
+    <!-- هلال فوق القبة -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M54,10 C51,10 49,11.5 49,13.5 C49,15.5 51,17 54,17 C57,17 59,15.5 59,13.5 C59,11.5 57,10 54,10Z" />
+    <path
+        android:fillColor="#0D1B2A"
+        android:pathData="M53,10 C50,10 48,11.5 48,13.5 C48,15.5 50,17 53,17 C56,17 58,15.5 58,13.5 C58,11.5 56,10 53,10Z" />
+
+    <!-- جسم المسجد -->
+    <path
+        android:fillColor="#1A4A60"
+        android:pathData="M28,45 L80,45 L80,80 L28,80Z" />
+
+    <!-- مئذنة يسار -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M20,30 L26,30 L26,80 L20,80Z" />
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M23,25 C21,25 19,27 19,29 L27,29 C27,27 25,25 23,25Z" />
+
+    <!-- مئذنة يمين -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M82,30 L88,30 L88,80 L82,80Z" />
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M85,25 C83,25 81,27 81,29 L89,29 C89,27 87,25 85,25Z" />
+
+    <!-- باب المسجد -->
+    <path
+        android:fillColor="#0D1B2A"
+        android:pathData="M47,58 C47,54 50.5,51 54,51 C57.5,51 61,54 61,58 L61,80 L47,80Z" />
+
+    <!-- نوافذ جانبية -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M32,52 C32,50 33.5,48 35,48 C36.5,48 38,50 38,52 L38,60 L32,60Z"
+        android:strokeWidth="0.5"
+        android:strokeColor="#0D1B2A" />
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M70,52 C70,50 71.5,48 73,48 C74.5,48 76,50 76,52 L76,60 L70,60Z"
+        android:strokeWidth="0.5"
+        android:strokeColor="#0D1B2A" />
+
+    <!-- الأرض -->
+    <path
+        android:fillColor="#D4AF37"
+        android:pathData="M16,80 L92,80 L92,84 L16,84Z" />
+
+</vector>
