@@ -12,8 +12,7 @@
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:showWhenLocked">true</item>
         <item name="android:turnScreenOn">true</item>
-        <item name="android:dismissKeyguard">true</item>
-    </style>
+     </style>
 
     <style name="Theme.ElectronicMuezzin.SplashScreen" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#0D1B2A</item>
