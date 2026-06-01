@@ -78,7 +78,7 @@ class AzanService : Service() {
 
         // Launch full screen activity
         val fullScreenIntent = Intent(this, AzanFullScreenActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             putExtra(EXTRA_PRAYER_NAME, prayerName)
             putExtra(EXTRA_AZAN_SOUND, azanSound)
         }
