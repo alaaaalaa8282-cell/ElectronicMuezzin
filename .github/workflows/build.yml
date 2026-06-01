@@ -28,6 +28,12 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Fix gradle.properties JVM args
+        run: |
+          sed -i '/org.gradle.jvmargs/d' gradle.properties
+          echo 'org.gradle.jvmargs=-Xmx3g -Dfile.encoding=UTF-8' >> gradle.properties
+          cat gradle.properties
+
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
@@ -40,8 +46,6 @@ jobs:
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
-        env:
-          GRADLE_OPTS: ""
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
@@ -52,8 +56,6 @@ jobs:
 
       - name: Build Release APK (unsigned)
         run: ./gradlew assembleRelease --stacktrace
-        env:
-          GRADLE_OPTS: ""
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
