@@ -168,12 +168,27 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             val current = azanSettings.value
             val updated = when (prayerName) {
-                "الفجر" -> current.copy(fajrEnabled = enabled)
-                "الظهر" -> current.copy(dhuhrEnabled = enabled)
-                "العصر" -> current.copy(asrEnabled = enabled)
+                "الفجر"  -> current.copy(fajrEnabled    = enabled)
+                "الظهر"  -> current.copy(dhuhrEnabled   = enabled)
+                "العصر"  -> current.copy(asrEnabled     = enabled)
                 "المغرب" -> current.copy(maghribEnabled = enabled)
-                "العشاء" -> current.copy(ishaEnabled = enabled)
-                else -> current
+                "العشاء" -> current.copy(ishaEnabled    = enabled)
+                else     -> current
+            }
+            settingsRepo.saveAzanSettings(updated)
+        }
+    }
+
+    fun setPrayerAzanSound(prayerName: String, soundKey: String) {
+        viewModelScope.launch {
+            val current = azanSettings.value
+            val updated = when (prayerName) {
+                "الفجر"  -> current.copy(fajrSound    = soundKey)
+                "الظهر"  -> current.copy(dhuhrSound   = soundKey)
+                "العصر"  -> current.copy(asrSound     = soundKey)
+                "المغرب" -> current.copy(maghribSound = soundKey)
+                "العشاء" -> current.copy(ishaSound    = soundKey)
+                else     -> current
             }
             settingsRepo.saveAzanSettings(updated)
         }

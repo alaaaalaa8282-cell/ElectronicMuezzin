@@ -139,7 +139,8 @@ fun MoreItemCard(item: MoreItem, onClick: () -> Unit) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f),
-               ) {
+                reverseLayout = true // RTL
+            ) {
                 Text(text = item.emoji, fontSize = 36.sp)
                 Column(horizontalAlignment = Alignment.End) {
                     Text(

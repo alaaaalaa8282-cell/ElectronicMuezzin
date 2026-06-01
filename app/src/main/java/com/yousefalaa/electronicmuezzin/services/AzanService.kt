@@ -78,7 +78,7 @@ class AzanService : Service() {
 
         // Launch full screen activity
         val fullScreenIntent = Intent(this, AzanFullScreenActivity::class.java).apply {
-           addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra(EXTRA_PRAYER_NAME, prayerName)
             putExtra(EXTRA_AZAN_SOUND, azanSound)
         }
@@ -136,12 +136,30 @@ class AzanService : Service() {
         }
     }
 
-    private fun getAzanResId(soundName: String): Int = when (soundName) {
-        "azan_fajr" -> R.raw.azan_fajr
-        "azan_madinah" -> R.raw.azan_madinah
-        "azan_egypt" -> R.raw.azan_egypt
-        "azan_short" -> R.raw.azan_short
-        else -> R.raw.azan_makkah
+    private fun getAzanResId(soundName: String): Int {
+        // أولاً: ابحث عن الملف بالاسم المحدد مباشرةً (مرونة كاملة)
+        val resId = resources.getIdentifier(soundName, "raw", packageName)
+        if (resId != 0) return resId
+
+        // إذا لم يُوجد الملف → ارجع للافتراضي حسب نوع الصوت
+        return when {
+            soundName.contains("fajr") -> getFallback("azan_fajr_makkah", "azan_fajr_classic", "azan_short")
+            soundName.contains("madinah") -> getFallback("azan_madinah_budayr", "azan_makkah_sudais", "azan_short")
+            soundName.contains("makkah") -> getFallback("azan_makkah_sudais", "azan_makkah_shuraim", "azan_short")
+            soundName == "notification_only" -> 0 // تنبيه بدون صوت
+            else -> getFallback("azan_makkah_sudais", "azan_short", "azan_simple")
+        }
+    }
+
+    /**
+     * يحاول الأصوات بالترتيب ويرجع أول واحد موجود
+     */
+    private fun getFallback(vararg names: String): Int {
+        for (name in names) {
+            val id = resources.getIdentifier(name, "raw", packageName)
+            if (id != 0) return id
+        }
+        return 0
     }
 
     private fun stopAzan() {

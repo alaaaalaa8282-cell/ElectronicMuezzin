@@ -143,12 +143,90 @@ object PrayerNames {
     val arabic = listOf("الفجر", "الشروق", "الظهر", "العصر", "المغرب", "العشاء")
     val icons = listOf("🌙", "☀️", "☀️", "🌤️", "🌅", "🌙")
 
-    fun getAzanSounds() = mapOf(
-        "azan_fajr" to "أذان الفجر",
-        "azan_makkah" to "أذان مكة المكرمة",
-        "azan_madinah" to "أذان المدينة المنورة",
-        "azan_egypt" to "أذان مصري",
-        "azan_short" to "أذان قصير",
-        "notification_only" to "تنبيه فقط"
+    /**
+     * قائمة أصوات الأذان الكاملة
+     * المفتاح = اسم الملف في res/raw (بدون امتداد)
+     * القيمة = الاسم العربي الذي يظهر للمستخدم
+     */
+    fun getAzanSounds(): LinkedHashMap<String, String> = linkedMapOf(
+        // ─── الحرمين الشريفين ───
+        "azan_makkah_sudais"        to "مكة المكرمة - الشيخ السديس",
+        "azan_makkah_shuraim"       to "مكة المكرمة - الشيخ الشريم",
+        "azan_makkah_ali_mullah"    to "مكة المكرمة - الشيخ علي ملا",
+        "azan_makkah_ajmi"          to "مكة المكرمة - الشيخ العجمي",
+        "azan_makkah_ghamdi"        to "مكة المكرمة - الشيخ الغامدي",
+        "azan_madinah_budayr"       to "المدينة المنورة - الشيخ البديّر",
+        "azan_madinah_qahtani"      to "المدينة المنورة - الشيخ القحطاني",
+        // ─── أذان الفجر ───
+        "azan_fajr_makkah"          to "أذان الفجر - مكة المكرمة",
+        "azan_fajr_madinah"         to "أذان الفجر - المدينة المنورة",
+        "azan_fajr_classic"         to "أذان الفجر - كلاسيكي",
+        // ─── مؤذنون مشهورون ───
+        "azan_abdulbasit"           to "عبد الباسط عبد الصمد",
+        "azan_minshawi"             to "محمد صديق المنشاوي",
+        "azan_husary"               to "محمود خليل الحصري",
+        "azan_tablawi"              to "محمد الطبلاوي",
+        "azan_ajmy"                 to "أحمد العجمي",
+        "azan_afasy"                to "مشاري راشد العفاسي",
+        // ─── أذانات دول عربية ───
+        "azan_egypt_classic"        to "أذان مصري - كلاسيكي",
+        "azan_egypt_radio"          to "أذان مصري - إذاعة القرآن",
+        "azan_turkey"               to "أذان تركي",
+        "azan_iraq"                 to "أذان عراقي",
+        "azan_morocco"              to "أذان مغربي",
+        "azan_levant"               to "أذان شامي",
+        // ─── أذانات قصيرة وبسيطة ───
+        "azan_short"                to "أذان قصير",
+        "azan_simple"               to "أذان بسيط",
+        // ─── تنبيه فقط ───
+        "notification_only"         to "🔔 تنبيه بدون أذان"
+    )
+
+    /** الأصوات الافتراضية لكل صلاة */
+    val defaultSounds = mapOf(
+        "الفجر"   to "azan_fajr_makkah",
+        "الظهر"   to "azan_makkah_sudais",
+        "العصر"   to "azan_makkah_sudais",
+        "المغرب"  to "azan_makkah_sudais",
+        "العشاء"  to "azan_makkah_sudais"
+    )
+
+    /** تجميع الأصوات في مجموعات للعرض في الإعدادات */
+    fun getGroupedSounds(): Map<String, List<Pair<String, String>>> = mapOf(
+        "الحرمين الشريفين" to listOf(
+            "azan_makkah_sudais"     to "مكة - السديس",
+            "azan_makkah_shuraim"   to "مكة - الشريم",
+            "azan_makkah_ali_mullah" to "مكة - علي ملا",
+            "azan_makkah_ajmi"      to "مكة - العجمي",
+            "azan_makkah_ghamdi"    to "مكة - الغامدي",
+            "azan_madinah_budayr"   to "المدينة - البديّر",
+            "azan_madinah_qahtani"  to "المدينة - القحطاني"
+        ),
+        "أذان الفجر" to listOf(
+            "azan_fajr_makkah"   to "فجر مكة",
+            "azan_fajr_madinah"  to "فجر المدينة",
+            "azan_fajr_classic"  to "فجر كلاسيكي"
+        ),
+        "مؤذنون مشهورون" to listOf(
+            "azan_abdulbasit" to "عبد الباسط",
+            "azan_minshawi"   to "المنشاوي",
+            "azan_husary"     to "الحصري",
+            "azan_tablawi"    to "الطبلاوي",
+            "azan_ajmy"       to "أحمد العجمي",
+            "azan_afasy"      to "العفاسي"
+        ),
+        "أذانات عربية" to listOf(
+            "azan_egypt_classic" to "مصري كلاسيكي",
+            "azan_egypt_radio"   to "إذاعة القرآن",
+            "azan_turkey"        to "تركي",
+            "azan_iraq"          to "عراقي",
+            "azan_morocco"       to "مغربي",
+            "azan_levant"        to "شامي"
+        ),
+        "أخرى" to listOf(
+            "azan_short"        to "أذان قصير",
+            "azan_simple"       to "بسيط",
+            "notification_only" to "🔔 تنبيه فقط"
+        )
     )
 }

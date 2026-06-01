@@ -20,7 +20,7 @@ object PrayerTimesCalculator {
         EGYPT(19.5, 17.5, nameAr = "طريقة مصر"),
         MWL(18.0, 17.0, nameAr = "رابطة العالم الإسلامي"),
         ISNA(15.0, 15.0, nameAr = "أمريكا الشمالية"),
-        MAKKAH(18.5, 0.0, ishaMinutes = 90, nameAr = "مكة المكرمة"),
+        MAKKAH(18.5, 0, ishaMinutes = 90, nameAr = "مكة المكرمة"),
         KARACHI(18.0, 18.0, nameAr = "كراتشي"),
         TEHRAN(17.7, 14.0, nameAr = "طهران"),
         JAFARI(16.0, 14.0, nameAr = "جعفري"),
