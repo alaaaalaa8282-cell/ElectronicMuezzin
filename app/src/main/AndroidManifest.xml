@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- أذونات موجودة -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -15,6 +16,15 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
+    <!-- الظهور فوق التطبيقات -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- إلغاء تحسين البطارية -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- الفتح الذاتي بعد إعادة التشغيل (موجود بالفعل RECEIVE_BOOT_COMPLETED) -->
+    <uses-permission android:name="android.permission.QUICKBOOT_POWERON" />
+
     <application
         android:name=".ElectronicMuezzinApp"
         android:allowBackup="true"
@@ -24,7 +34,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ElectronicMuezzin"
         android:largeHeap="true"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
+
+        <!-- إصلاح خطأ WorkManager -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="remove" />
 
         <activity
             android:name=".MainActivity"
@@ -62,6 +80,9 @@
             <intent-filter android:priority="999">
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <!-- الفتح بعد إعادة التشغيل على Huawei/Xiaomi -->
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
 
