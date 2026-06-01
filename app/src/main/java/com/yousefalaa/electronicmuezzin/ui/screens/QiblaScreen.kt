@@ -1,21 +1,23 @@
 package com.yousefalaa.electronicmuezzin.ui.screens
 
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,6 +30,7 @@ import kotlin.math.*
 
 @Composable
 fun QiblaScreen(viewModel: MainViewModel = hiltViewModel()) {
+    val context = LocalContext.current
     val prayerSettings by viewModel.prayerSettings.collectAsState()
     val isLocationSet by viewModel.isLocationSet.collectAsState()
 
@@ -43,10 +46,69 @@ fun QiblaScreen(viewModel: MainViewModel = hiltViewModel()) {
         else 0.0
     }
 
-    // تدوير البوصلة بسلاسة
+    // زاوية السنسور (اتجاه الموبايل من الشمال)
+    var deviceAzimuth by remember { mutableStateOf(0f) }
+    var hasSensor by remember { mutableStateOf(true) }
+
+    // تسجيل السنسور
+    DisposableEffect(Unit) {
+        val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        val magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+
+        if (accelerometer == null || magnetometer == null) {
+            hasSensor = false
+        }
+
+        val gravity = FloatArray(3)
+        val geomagnetic = FloatArray(3)
+        var hasGravity = false
+        var hasMagnetic = false
+
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                when (event.sensor.type) {
+                    Sensor.TYPE_ACCELEROMETER -> {
+                        System.arraycopy(event.values, 0, gravity, 0, 3)
+                        hasGravity = true
+                    }
+                    Sensor.TYPE_MAGNETIC_FIELD -> {
+                        System.arraycopy(event.values, 0, geomagnetic, 0, 3)
+                        hasMagnetic = true
+                    }
+                }
+                if (hasGravity && hasMagnetic) {
+                    val R = FloatArray(9)
+                    val I = FloatArray(9)
+                    if (SensorManager.getRotationMatrix(R, I, gravity, geomagnetic)) {
+                        val orientation = FloatArray(3)
+                        SensorManager.getOrientation(R, orientation)
+                        val azimuth = Math.toDegrees(orientation[0].toDouble()).toFloat()
+                        deviceAzimuth = (azimuth + 360) % 360
+                    }
+                }
+            }
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+
+        sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_UI)
+        sensorManager.registerListener(listener, magnetometer, SensorManager.SENSOR_DELAY_UI)
+
+        onDispose {
+            sensorManager.unregisterListener(listener)
+        }
+    }
+
+    // الزاوية الفعلية للسهم = اتجاه القبلة - اتجاه الموبايل
+    val arrowAngle = if (hasSensor) {
+        ((qiblaDirection.toFloat() - deviceAzimuth) + 360) % 360
+    } else {
+        qiblaDirection.toFloat()
+    }
+
     val animatedAngle by animateFloatAsState(
-        targetValue = qiblaDirection.toFloat(),
-        animationSpec = tween(durationMillis = 600, easing = EaseInOutSine),
+        targetValue = arrowAngle,
+        animationSpec = tween(durationMillis = 300, easing = LinearEasing),
         label = "qibla_rotation"
     )
 
@@ -68,7 +130,6 @@ fun QiblaScreen(viewModel: MainViewModel = hiltViewModel()) {
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // العنوان
             Text(
                 text = "🕋 اتجاه القبلة",
                 style = MaterialTheme.typography.headlineMedium,
@@ -97,34 +158,46 @@ fun QiblaScreen(viewModel: MainViewModel = hiltViewModel()) {
                     }
                 }
             } else {
-                // بوصلة القبلة
+                // تحذير لو مفيش سنسور
+                if (!hasSensor) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A1A10))
+                    ) {
+                        Text(
+                            text = "⚠️ جهازك لا يدعم البوصلة — الاتجاه تقريبي من الشمال",
+                            modifier = Modifier.padding(12.dp),
+                            color = Color(0xFFFFAA44),
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                // البوصلة
                 Box(
                     modifier = Modifier.size(280.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    // الحلقات الخارجية
+                    // الحلقات الثابتة
                     Canvas(modifier = Modifier.fillMaxSize()) {
                         val center = Offset(size.width / 2f, size.height / 2f)
                         val outerR = size.minDimension / 2f
                         val innerR = outerR - 20f
 
-                        // الحلقة الخارجية الذهبية
                         drawCircle(
                             color = GoldPrimary,
                             radius = outerR,
                             center = center,
                             style = Stroke(width = 3f)
                         )
-
-                        // الحلقة الداخلية
                         drawCircle(
                             color = GoldDark,
                             radius = innerR,
                             center = center,
                             style = Stroke(width = 1f)
                         )
-
-                        // خلفية البوصلة
                         drawCircle(
                             brush = Brush.radialGradient(
                                 colors = listOf(Color(0xFF1A3A50), Color(0xFF0D1B2A)),
@@ -134,7 +207,7 @@ fun QiblaScreen(viewModel: MainViewModel = hiltViewModel()) {
                             center = center
                         )
 
-                        // علامات الاتجاهات
+                        // علامات الدرجات
                         for (i in 0..359 step 30) {
                             val angle = Math.toRadians(i.toDouble() - 90)
                             val tickLen = if (i % 90 == 0) 20f else 10f
@@ -151,7 +224,7 @@ fun QiblaScreen(viewModel: MainViewModel = hiltViewModel()) {
                         }
                     }
 
-                    // مؤشر القبلة المتحرك
+                    // السهم المتحرك مع السنسور
                     Canvas(
                         modifier = Modifier
                             .fillMaxSize()
@@ -160,7 +233,7 @@ fun QiblaScreen(viewModel: MainViewModel = hiltViewModel()) {
                         val center = Offset(size.width / 2f, size.height / 2f)
                         val arrowLen = size.minDimension / 2f - 30f
 
-                        // السهم نحو القبلة (أخضر)
+                        // السهم الأخضر نحو القبلة
                         val path = Path().apply {
                             moveTo(center.x, center.y - arrowLen)
                             lineTo(center.x - 18f, center.y - arrowLen + 50f)
@@ -170,7 +243,7 @@ fun QiblaScreen(viewModel: MainViewModel = hiltViewModel()) {
                         }
                         drawPath(path, color = GreenLight)
 
-                        // الجهة المعاكسة
+                        // السهم الرمادي الجهة المعاكسة
                         val pathBack = Path().apply {
                             moveTo(center.x, center.y + arrowLen)
                             lineTo(center.x - 12f, center.y + arrowLen - 35f)
@@ -180,7 +253,6 @@ fun QiblaScreen(viewModel: MainViewModel = hiltViewModel()) {
                         }
                         drawPath(pathBack, color = Color(0xFF888888))
 
-                        // خط البوصلة
                         drawLine(
                             color = GreenLight,
                             start = Offset(center.x, center.y - arrowLen + 30f),
@@ -194,16 +266,13 @@ fun QiblaScreen(viewModel: MainViewModel = hiltViewModel()) {
                             strokeWidth = 4f
                         )
 
-                        // نقطة المركز
                         drawCircle(color = GoldPrimary, radius = 10f, center = center)
                         drawCircle(color = Color.Black, radius = 5f, center = center)
                     }
 
-                    // أيقونة الكعبة في المركز
                     Text(text = "🕋", fontSize = 24.sp)
                 }
 
-                // النصوص الإرشادية (الشمال / الجنوب / إلخ)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -214,7 +283,6 @@ fun QiblaScreen(viewModel: MainViewModel = hiltViewModel()) {
                     CompassLabel("غ", 270f)
                 }
 
-                // بطاقة المعلومات
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
