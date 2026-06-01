@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,6 +40,8 @@ jobs:
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --stacktrace
+        env:
+          GRADLE_OPTS: ""
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
@@ -50,6 +52,8 @@ jobs:
 
       - name: Build Release APK (unsigned)
         run: ./gradlew assembleRelease --stacktrace
+        env:
+          GRADLE_OPTS: ""
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
