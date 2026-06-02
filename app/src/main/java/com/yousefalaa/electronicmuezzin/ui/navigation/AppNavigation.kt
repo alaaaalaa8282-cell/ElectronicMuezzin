@@ -20,23 +20,25 @@ fun AppNavigation() {
         startDestination = if (isFirstLaunch) "onboarding" else "home"
     ) {
         composable("onboarding") {
-            OnboardingScreen(navController = navController) {
+            OnboardingScreen(navController) {
                 prefs.edit().putBoolean("first_launch", false).apply()
-                navController.navigate("home") {
-                    popUpTo("onboarding") { inclusive = true }
-                }
+                navController.navigate("home") { popUpTo("onboarding") { inclusive = true } }
             }
         }
-        composable("home")          { HomeScreen(navController) }
-        composable("prayer_times")  { PrayerTimesScreen(navController) }
-        composable("adhkar")        { AdhkarScreen(navController) }
-        composable("qibla")         { QiblaScreen() }
-        composable("calendar")      { CalendarScreen() }
-        composable("tasbih")        { TasbihScreen(navController) }
-        composable("ramadan")       { RamadanScreen(navController) }
-        composable("quran_khatma")  { QuranSurahIndexScreen(navController) }
-        composable("settings")      { SettingsScreen(navController) }
-        composable("salah_alnabi")  { SalahAlNabiScreen(navController) }
+        composable("home")         { HomeScreen(navController) }
+        composable("prayer_times") { PrayerTimesScreen(navController) }
+        composable("adhkar")       { AdhkarScreen(navController) }
+        composable("qibla")        { QiblaScreen() }
+        composable("calendar")     { CalendarScreen() }
+        composable("tasbih")       { TasbihScreen(navController) }
+        composable("ramadan")      { RamadanScreen(navController) }
+        composable("quran_khatma") { QuranSurahIndexScreen(navController) }
+        composable("settings")     { SettingsScreen(navController) }
+        composable("salah_alnabi") { SalahAlNabiScreen(navController) }
+        composable("qiyam")        { QiyamScreen(navController) }
+        composable("fasting")      { FastingScreen(navController) }
+        composable("friday")       { FridayScreen(navController) }
+        composable("eid_takberat") { EidTakberatScreen(navController) }
         composable("adhkar_list/{category}") { backStack ->
             val category = backStack.arguments?.getString("category") ?: "MORNING"
             AdhkarListScreen(category, navController)
