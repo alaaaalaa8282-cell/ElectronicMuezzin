@@ -20,8 +20,8 @@ import com.yousefalaa.electronicmuezzin.ui.MainViewModel
 import com.yousefalaa.electronicmuezzin.utils.TimeFormatter
 import java.util.Calendar
 
-val GoldBg    = Color(0xFFD4A843)
-val GoldCard  = Color(0xFFCB9A2E)
+val GoldBg     = Color(0xFFD4A843)
+val GoldCard   = Color(0xFFCB9A2E)
 val GoldBorder2 = Color(0xFF8B6914)
 
 data class HomeMenuItem(val emoji: String, val title: String, val route: String)
@@ -45,18 +45,17 @@ fun HomeScreen(navController: NavController, viewModel: MainViewModel = hiltView
         HomeMenuItem("📍", "اوقات الصلاة",     "prayer_times"),
         HomeMenuItem("🤲", "أذكار المسلم",     "adhkar"),
         HomeMenuItem("📖", "خاتم القران",       "quran_khatma"),
-        HomeMenuItem("💝", "صدقة جارية",       "sadaqa"),
         HomeMenuItem("📿", "تسبيح",            "tasbih"),
         HomeMenuItem("🕋", "الصلاة على النبي", "salah_alnabi"),
         HomeMenuItem("🤲", "أذكار الصلاة",     "adhkar_list/AFTER_PRAYER"),
-        HomeMenuItem("📤", "مشاركة التطبيق",   "share"),
-        HomeMenuItem("⭐", "تقيم التطبيق",     "rate"),
+        HomeMenuItem("🌙", "رمضان",            "ramadan"),
+        HomeMenuItem("🌙", "قيام الليل",        "qiyam"),
+        HomeMenuItem("📅", "صيام التطوع",      "fasting"),
         HomeMenuItem("⚙️", "اعدادات",          "settings")
     )
 
     Column(modifier = Modifier.fillMaxSize().background(GoldBg)) {
-
-        // ── رأس الصفحة ──
+        // رأس الصفحة
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -79,7 +78,6 @@ fun HomeScreen(navController: NavController, viewModel: MainViewModel = hiltView
             }
         }
 
-        // ── شبكة الأزرار ──
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             modifier = Modifier.fillMaxSize().padding(8.dp),
@@ -88,10 +86,7 @@ fun HomeScreen(navController: NavController, viewModel: MainViewModel = hiltView
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(menuItems) { item ->
-                HomeMenuCard(item = item, onClick = {
-                    if (item.route !in listOf("share","rate","sadaqa"))
-                        navController.navigate(item.route)
-                })
+                HomeMenuCard(item = item, onClick = { navController.navigate(item.route) })
             }
         }
     }
@@ -104,18 +99,11 @@ fun HomeMenuCard(item: HomeMenuItem, onClick: () -> Unit) {
             .aspectRatio(0.9f)
             .clip(RoundedCornerShape(12.dp))
             .background(Brush.verticalGradient(colors = listOf(Color(0xFFF5D080), GoldCard)))
-            .border(
-                width = 2.dp,
-                brush = Brush.verticalGradient(colors = listOf(Color(0xFFFFE0A0), GoldBorder2)),
-                shape = RoundedCornerShape(12.dp)
-            )
+            .border(2.dp, Brush.verticalGradient(colors = listOf(Color(0xFFFFE0A0), GoldBorder2)), RoundedCornerShape(12.dp))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(8.dp)
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
             Box(
                 modifier = Modifier
                     .size(64.dp)
@@ -123,9 +111,7 @@ fun HomeMenuCard(item: HomeMenuItem, onClick: () -> Unit) {
                     .background(Brush.verticalGradient(colors = listOf(Color(0xFFE8C060), Color(0xFFB8900A))))
                     .border(1.dp, GoldBorder2, RoundedCornerShape(10.dp)),
                 contentAlignment = Alignment.Center
-            ) {
-                Text(item.emoji, fontSize = 32.sp)
-            }
+            ) { Text(item.emoji, fontSize = 32.sp) }
             Spacer(modifier = Modifier.height(6.dp))
             Box(
                 modifier = Modifier
@@ -135,16 +121,9 @@ fun HomeMenuCard(item: HomeMenuItem, onClick: () -> Unit) {
                     .padding(horizontal = 4.dp, vertical = 3.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = item.title,
-                    fontSize = 11.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1
-                )
+                Text(item.title, fontSize = 11.sp, color = Color.White,
+                    fontWeight = FontWeight.Bold, textAlign = TextAlign.Center, maxLines = 1)
             }
         }
     }
 }
-
