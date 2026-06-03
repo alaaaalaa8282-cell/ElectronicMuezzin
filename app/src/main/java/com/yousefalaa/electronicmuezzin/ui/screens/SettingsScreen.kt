@@ -3,157 +3,152 @@ package com.yousefalaa.electronicmuezzin.ui.screens
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.yousefalaa.electronicmuezzin.ui.MainViewModel
-import com.yousefalaa.electronicmuezzin.utils.TimeFormatter
+import com.yousefalaa.electronicmuezzin.data.models.PrayerNames
+import com.yousefalaa.electronicmuezzin.data.models.RamadanSettings
+import com.yousefalaa.electronicmuezzin.ui.viewmodels.SettingsViewModel
+import com.yousefalaa.electronicmuezzin.utils.PrayerTimesCalculator
 
-val AppRed = Color(0xFFD4573A)
-val AppGray = Color(0xFFF5F5F5)
+val AppRed     = Color(0xFFD4573A)
+val AppGray    = Color(0xFFF2F2F7)
 val AppDivider = Color(0xFFE0E0E0)
 
-// ════════════════════════════════════════════════
-//  شاشة الإعدادات الرئيسية
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  الشاشة الرئيسية للإعدادات
+// ════════════════════════════════════════════════════════
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController, viewModel: MainViewModel = hiltViewModel()) {
-    var currentScreen by remember { mutableStateOf("main") }
+fun SettingsScreen(
+    navController: NavController,
+    vm: SettingsViewModel = hiltViewModel()
+) {
+    var screen by remember { mutableStateOf("main") }
 
-    when (currentScreen) {
-        "main"          -> SettingsMain(navController) { currentScreen = it }
-        "azan_times"    -> AzanTimesScreen { currentScreen = "main" }
-        "iqama_times"   -> IqamaTimesScreen { currentScreen = "main" }
-        "approach"      -> ApproachTimesScreen { currentScreen = "main" }
-        "azan_sound"    -> AzanSoundSelectionScreen { currentScreen = "main" }
-        "approach_sound"-> ApproachSoundScreen { currentScreen = "main" }
-        "azan_screen"   -> AzanScreenSettingsScreen { currentScreen = "main" }
-        "more_settings" -> MoreSettingsScreen(navController) { currentScreen = "main" }
+    when (screen) {
+        "main"         -> SettingsMainScreen(navController, vm) { screen = it }
+        "azan_times"   -> AzanTimesScreen(vm)   { screen = "main" }
+        "iqama_times"  -> IqamaTimesScreen(vm)  { screen = "main" }
+        "approach"     -> ApproachScreen(vm)    { screen = "main" }
+        "azan_sound"   -> AzanSoundScreen(vm)   { screen = "main" }
+        "azan_screen"  -> AzanScreenSettings(vm){ screen = "main" }
+        "more"         -> MoreSettings(vm)      { screen = "main" }
+        "ramadan_settings" -> RamadanSettingsScreen(vm) { screen = "main" }
     }
 }
 
+// ════════════════════════════════════════════════════════
+//  الرئيسية
+// ════════════════════════════════════════════════════════
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsMain(navController: NavController, onNavigate: (String) -> Unit) {
+fun SettingsMainScreen(
+    navController: NavController,
+    vm: SettingsViewModel,
+    onNav: (String) -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("اعدادات", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowForwardIos, contentDescription = null)
-                    }
-                },
+                navigationIcon = { IconButton(onClick = { navController.popBackStack() }) { Icon(Icons.Default.ArrowForwardIos, null) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().background(AppGray).padding(padding)
-        ) {
-            // المجموعة الأولى
-            item {
-                SettingsGroup {
-                    SettingsItem("ضبط مواقيت الأذان") { onNavigate("azan_times") }
-                    Divider(color = AppDivider)
-                    SettingsItem("ضبط مواقيت الإقامة") { onNavigate("iqama_times") }
-                    Divider(color = AppDivider)
-                    SettingsItem("ضبط مواقيت إقتراب الصلاة") { onNavigate("approach") }
-                }
-            }
-
-            // مركز التنبيهات
+    ) { pad ->
+        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(pad)) {
             item {
                 Spacer(modifier = Modifier.height(12.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp)
-                        .background(AppRed, RoundedCornerShape(12.dp))
-                        .clickable { }
-                        .padding(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("مركز التنبيهات", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("🔔", fontSize = 20.sp)
-                    }
+                SGroup {
+                    SRow("ضبط مواقيت الأذان")    { onNav("azan_times") }
+                    SDivider()
+                    SRow("ضبط مواقيت الإقامة")   { onNav("iqama_times") }
+                    SDivider()
+                    SRow("ضبط مواقيت إقتراب الصلاة") { onNav("approach") }
                 }
             }
-
-            // المجموعة الثانية
             item {
                 Spacer(modifier = Modifier.height(12.dp))
-                SettingsGroup {
-                    SettingsItem("إختيار صوت الأذان") { onNavigate("azan_sound") }
-                    Divider(color = AppDivider)
-                    SettingsItem("ضبط صوت الأذان") { onNavigate("approach_sound") }
-                    Divider(color = AppDivider)
-                    SettingsItem("ضبط شاشة الأذان") { onNavigate("azan_screen") }
+                RedButton("مركز التنبيهات 🔔") { }
+            }
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
+                SGroup {
+                    SRow("إختيار صوت الأذان")  { onNav("azan_sound") }
+                    SDivider()
+                    SRow("ضبط شاشة الأذان")    { onNav("azan_screen") }
                 }
             }
-
-            // المزيد
             item {
                 Spacer(modifier = Modifier.height(12.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp)
-                        .background(AppRed, RoundedCornerShape(12.dp))
-                        .clickable { onNavigate("more_settings") }
-                        .padding(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("المـــزيد", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("⊞", fontSize = 20.sp, color = Color.White)
-                    }
-                }
+                RedButton("المـــزيد ⊞") { onNav("more") }
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 }
 
-// ════════════════════════════════════════════════
-//  ضبط مواقيت الأذان
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  ضبط مواقيت الأذان - مع حفظ فعلي
+// ════════════════════════════════════════════════════════
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AzanTimesScreen(onBack: () -> Unit) {
+fun AzanTimesScreen(vm: SettingsViewModel, onBack: () -> Unit) {
+    val azanSettings by vm.azanSettings.collectAsState()
+    val prayerSettings by vm.prayerSettings.collectAsState()
+
+    // حالة محلية للتعديلات مربوطة بالـ DataStore
+    val offsets = remember(azanSettings) {
+        mutableStateListOf(
+            azanSettings.fajrOffset,
+            azanSettings.sunriseOffset,
+            azanSettings.dhuhrOffset,
+            azanSettings.asrOffset,
+            azanSettings.maghribOffset,
+            azanSettings.ishaOffset
+        )
+    }
+
     val prayers = listOf(
         "أذان الفجر" to "🌙",
-        "الشروق" to "🌅",
+        "الشروق"     to "🌅",
         "أذان الظهر" to "☀️",
         "أذان العصر" to "🌤️",
-        "أذان المغرب" to "🌇",
-        "أذان العشاء" to "🌙"
+        "أذان المغرب"to "🌇",
+        "أذان العشاء"to "🌙"
     )
-    val adjustments = remember { mutableStateListOf(0, 0, 0, 0, 0, 0) }
-    val times = listOf("07:39", "08:54", "02:57", "06:23", "09:01", "10:30")
+    val prayerKeys = listOf("الفجر","الشروق","الظهر","العصر","المغرب","العشاء")
+
+    // حساب الأوقات الفعلية
+    val calcMethod = runCatching {
+        PrayerTimesCalculator.CalculationMethod.valueOf(prayerSettings.calculationMethod)
+    }.getOrDefault(PrayerTimesCalculator.CalculationMethod.EGYPT)
+
+    val asrMethod = runCatching {
+        PrayerTimesCalculator.AsrMethod.valueOf(prayerSettings.asrMethod)
+    }.getOrDefault(PrayerTimesCalculator.AsrMethod.STANDARD)
+
+    val prayerTimes = if (prayerSettings.latitude != 0.0) {
+        val tz = java.util.TimeZone.getDefault().getOffset(System.currentTimeMillis()) / 3600000.0
+        PrayerTimesCalculator.calculate(prayerSettings.latitude, prayerSettings.longitude, tz, calcMethod, asrMethod)
+    } else null
+
+    val baseTimes = prayerTimes?.let {
+        listOf(it.fajr, it.sunrise, it.dhuhr, it.asr, it.maghrib, it.isha)
+    } ?: List(6) { 0L }
 
     Scaffold(
         topBar = {
@@ -163,45 +158,120 @@ fun AzanTimesScreen(onBack: () -> Unit) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(padding)) {
-            // المذهب والتوقيت الصيفي
+    ) { pad ->
+        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(pad)) {
             item {
                 Spacer(modifier = Modifier.height(8.dp))
-                SettingsGroup {
-                    SettingsItemWithSub("المذهب المتبع لتحديد وقت صلاة العصر", "شافعي,حنبلي,مالكي") { }
-                    Divider(color = AppDivider)
-                    SettingsItemWithSub("التوقيت الصيفي", "تم إيقاف التوقيت الصيفي") { }
+                SGroup {
+                    // المذهب
+                    var showMathhabDialog by remember { mutableStateOf(false) }
+                    SRowWithSub(
+                        title = "المذهب المتبع لوقت العصر",
+                        sub   = if (prayerSettings.asrMethod == "STANDARD") "شافعي,حنبلي,مالكي" else "حنفي"
+                    ) { showMathhabDialog = true }
+
+                    if (showMathhabDialog) {
+                        Dialog(onDismissRequest = { showMathhabDialog = false }) {
+                            Card(shape = RoundedCornerShape(16.dp)) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text("مذهب وقت العصر", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    listOf("STANDARD" to "شافعي,حنبلي,مالكي (ظل مثل)", "HANAFI" to "حنفي (ظل مثلين)").forEach { (key, label) ->
+                                        Row(modifier = Modifier.fillMaxWidth().clickable {
+                                            vm.setAsrMethod(key)
+                                            showMathhabDialog = false
+                                        }.padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            RadioButton(selected = prayerSettings.asrMethod == key, onClick = { vm.setAsrMethod(key); showMathhabDialog = false },
+                                                colors = RadioButtonDefaults.colors(selectedColor = AppRed))
+                                            Text(label)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    SDivider()
+
+                    // التوقيت الصيفي
+                    var summerDialog by remember { mutableStateOf(false) }
+                    SRowWithSub(
+                        title = "التوقيت الصيفي",
+                        sub   = if (prayerSettings.summerTimeOffset == 0) "تم إيقاف التوقيت الصيفي" else "+${prayerSettings.summerTimeOffset} ساعة"
+                    ) { summerDialog = true }
+
+                    if (summerDialog) {
+                        Dialog(onDismissRequest = { summerDialog = false }) {
+                            Card(shape = RoundedCornerShape(16.dp)) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text("التوقيت الصيفي", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    listOf(0 to "إيقاف", 1 to "+1 ساعة", 2 to "+2 ساعة").forEach { (offset, label) ->
+                                        Row(modifier = Modifier.fillMaxWidth().clickable {
+                                            vm.setSummerOffset(offset)
+                                            summerDialog = false
+                                        }.padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            RadioButton(selected = prayerSettings.summerTimeOffset == offset, onClick = { vm.setSummerOffset(offset); summerDialog = false },
+                                                colors = RadioButtonDefaults.colors(selectedColor = AppRed))
+                                            Text(label)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // ضبط مواقيت الأذان
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
+                    shape = RoundedCornerShape(12.dp)) {
                     Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
-                        Text(
-                            "ضبط مواقيت الأذان",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.End,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF444444)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("ضبط مواقيت الأذان", modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.End, fontWeight = FontWeight.Bold, color = Color(0xFF444444))
+                        Spacer(modifier = Modifier.height(4.dp))
+
                         prayers.forEachIndexed { i, (name, emoji) ->
-                            PrayerTimeAdjustRow(
-                                name = name,
-                                emoji = emoji,
-                                time = times[i],
-                                value = adjustments[i],
-                                onMinus = { if (adjustments[i] > -60) adjustments[i]-- },
-                                onPlus = { if (adjustments[i] < 60) adjustments[i]++ }
-                            )
-                            if (i < prayers.size - 1) Divider(color = AppDivider)
+                            val adjustedTime = baseTimes[i] + offsets[i] * 60000L
+                            val timeStr = if (adjustedTime > 0)
+                                com.yousefalaa.electronicmuezzin.utils.TimeFormatter.formatTime(adjustedTime)
+                            else "--:--"
+
+                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically) {
+
+                                // عداد التعديل
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    AdjustButton("-") {
+                                        if (offsets[i] > -60) {
+                                            offsets[i]--
+                                            vm.setAzanOffset(prayerKeys[i], offsets[i])
+                                        }
+                                    }
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("${offsets[i]}", fontSize = 24.sp, fontWeight = FontWeight.Bold,
+                                            color = if (offsets[i] == 0) Color.Black else AppRed)
+                                        Text(timeStr, fontSize = 11.sp, color = Color(0xFF888888))
+                                    }
+                                    AdjustButton("+") {
+                                        if (offsets[i] < 60) {
+                                            offsets[i]++
+                                            vm.setAzanOffset(prayerKeys[i], offsets[i])
+                                        }
+                                    }
+                                }
+
+                                // اسم الصلاة
+                                Row(verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Text(name, fontWeight = FontWeight.Medium)
+                                    Text(emoji, fontSize = 20.sp)
+                                }
+                            }
+                            if (i < prayers.size - 1) SDivider()
                         }
                     }
                 }
@@ -211,22 +281,35 @@ fun AzanTimesScreen(onBack: () -> Unit) {
     }
 }
 
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  ضبط مواقيت الإقامة
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun IqamaTimesScreen(onBack: () -> Unit) {
-    val prayers = listOf(
-        "أذان الفجر" to "🌙",
-        "الشروق" to "🌅",
-        "أذان الظهر" to "☀️",
-        "أذان العصر" to "🌤️",
-        "أذان المغرب" to "🌇",
-        "أذان العشاء" to "🌙"
-    )
-    val adjustments = remember { mutableStateListOf(20, 15, 10, 10, 5, 15) }
-    val times = listOf("07:59", "09:09", "03:07", "06:33", "09:06", "10:45") 
+fun IqamaTimesScreen(vm: SettingsViewModel, onBack: () -> Unit) {
+    val az by vm.azanSettings.collectAsState()
+    val prayerSettings by vm.prayerSettings.collectAsState()
+
+    val iqamas = remember(az) {
+        mutableStateListOf(az.fajrIqama, az.dhuhrIqama, az.asrIqama, az.maghribIqama, az.ishaIqama)
+    }
+
+    val prayers = listOf("أذان الفجر" to "🌙","أذان الظهر" to "☀️","أذان العصر" to "🌤️","أذان المغرب" to "🌇","أذان العشاء" to "🌙")
+    val prayerKeys = listOf("الفجر","الظهر","العصر","المغرب","العشاء")
+
+    // حساب أوقات الإقامة الفعلية
+    val calcMethod = runCatching { PrayerTimesCalculator.CalculationMethod.valueOf(prayerSettings.calculationMethod) }
+        .getOrDefault(PrayerTimesCalculator.CalculationMethod.EGYPT)
+    val asrMethod = runCatching { PrayerTimesCalculator.AsrMethod.valueOf(prayerSettings.asrMethod) }
+        .getOrDefault(PrayerTimesCalculator.AsrMethod.STANDARD)
+    val prayerTimes = if (prayerSettings.latitude != 0.0) {
+        val tz = java.util.TimeZone.getDefault().getOffset(System.currentTimeMillis()) / 3600000.0
+        PrayerTimesCalculator.calculate(prayerSettings.latitude, prayerSettings.longitude, tz, calcMethod, asrMethod)
+    } else null
+
+    val baseTimes = prayerTimes?.let {
+        listOf(it.fajr, it.dhuhr, it.asr, it.maghrib, it.isha)
+    } ?: List(5) { 0L }
 
     Scaffold(
         topBar = {
@@ -236,27 +319,53 @@ fun IqamaTimesScreen(onBack: () -> Unit) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(padding)) {
+    ) { pad ->
+        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(pad)) {
             item {
                 Spacer(modifier = Modifier.height(8.dp))
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
+                    shape = RoundedCornerShape(12.dp)) {
                     Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
                         Text("ضبط مواقيت الإقامة", modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.End, fontWeight = FontWeight.Bold, color = Color(0xFF444444))
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
+
                         prayers.forEachIndexed { i, (name, emoji) ->
-                            PrayerTimeAdjustRow(
-                                name = name, emoji = emoji, time = times[i],
-                                value = adjustments[i],
-                                onMinus = { if (adjustments[i] > 0) adjustments[i]-- },
-                                onPlus = { if (adjustments[i] < 120) adjustments[i]++ }
-                            )
-                            if (i < prayers.size - 1) Divider(color = AppDivider)
+                            val iqamaTime = baseTimes[i] + iqamas[i] * 60000L
+                            val timeStr = if (iqamaTime > 0)
+                                com.yousefalaa.electronicmuezzin.utils.TimeFormatter.formatTime(iqamaTime)
+                            else "--:--"
+
+                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically) {
+
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    AdjustButton("-") {
+                                        if (iqamas[i] > 0) {
+                                            iqamas[i]--
+                                            vm.setIqamaMinutes(prayerKeys[i], iqamas[i])
+                                        }
+                                    }
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("${iqamas[i]}", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                                        Text(timeStr, fontSize = 11.sp, color = Color(0xFF888888))
+                                    }
+                                    AdjustButton("+") {
+                                        if (iqamas[i] < 120) {
+                                            iqamas[i]++
+                                            vm.setIqamaMinutes(prayerKeys[i], iqamas[i])
+                                        }
+                                    }
+                                }
+
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Text(name, fontWeight = FontWeight.Medium)
+                                    Text(emoji, fontSize = 20.sp)
+                                }
+                            }
+                            if (i < prayers.size - 1) SDivider()
                         }
                     }
                 }
@@ -266,23 +375,38 @@ fun IqamaTimesScreen(onBack: () -> Unit) {
     }
 }
 
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  ضبط مواقيت اقتراب الصلاة
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ApproachTimesScreen(onBack: () -> Unit) {
-    val prayers = listOf(
-        Triple("قبل أذان الفجر", "🌙", 20),
-        Triple("قبل شروق الشمس", "🌅", 10),
-        Triple("قبل أذان الظهر", "☀️", 10),
-        Triple("قبل أذان العصر", "🌤️", 10),
-        Triple("قبل أذان المغرب", "🌇", 15),
-        Triple("قبل أذان العشاء", "🌙", 15)
-    )
-    val enabled = remember { mutableStateListOf(true, true, true, true, true, true) }
-    val values = remember { mutableStateListOf(20, 10, 10, 10, 15, 15) }
-    val times = listOf("07:19", "08:44", "02:47", "06:13", "08:46", "10:15")
+fun ApproachScreen(vm: SettingsViewModel, onBack: () -> Unit) {
+    val az by vm.azanSettings.collectAsState()
+    val prayerSettings by vm.prayerSettings.collectAsState()
+
+    val enabled = remember(az) {
+        mutableStateListOf(az.fajrApproachEnabled, az.dhuhrApproachEnabled, az.asrApproachEnabled, az.maghribApproachEnabled, az.ishaApproachEnabled)
+    }
+    val minutes = remember(az) {
+        mutableStateListOf(az.fajrApproachMinutes, az.sunriseApproachMinutes, az.dhuhrApproachMinutes, az.asrApproachMinutes, az.maghribApproachMinutes, az.ishaApproachMinutes)
+    }
+
+    val prayers = listOf("قبل أذان الفجر","قبل شروق الشمس","قبل أذان الظهر","قبل أذان العصر","قبل أذان المغرب","قبل أذان العشاء")
+    val emojis  = listOf("🌙","🌅","☀️","🌤️","🌇","🌙")
+    val enabledKeys = listOf("الفجر","الظهر","العصر","المغرب","العشاء")
+    val minuteKeys  = listOf("الفجر","الشروق","الظهر","العصر","المغرب","العشاء")
+
+    // أوقات الأذان الفعلية
+    val calcMethod = runCatching { PrayerTimesCalculator.CalculationMethod.valueOf(prayerSettings.calculationMethod) }
+        .getOrDefault(PrayerTimesCalculator.CalculationMethod.EGYPT)
+    val asrMethod = runCatching { PrayerTimesCalculator.AsrMethod.valueOf(prayerSettings.asrMethod) }
+        .getOrDefault(PrayerTimesCalculator.AsrMethod.STANDARD)
+    val pt = if (prayerSettings.latitude != 0.0) {
+        val tz = java.util.TimeZone.getDefault().getOffset(System.currentTimeMillis()) / 3600000.0
+        PrayerTimesCalculator.calculate(prayerSettings.latitude, prayerSettings.longitude, tz, calcMethod, asrMethod)
+    } else null
+
+    val baseTimes = pt?.let { listOf(it.fajr, it.sunrise, it.dhuhr, it.asr, it.maghrib, it.isha) } ?: List(6) { 0L }
 
     Scaffold(
         topBar = {
@@ -292,58 +416,79 @@ fun ApproachTimesScreen(onBack: () -> Unit) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(padding)) {
+    ) { pad ->
+        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(pad)) {
             item {
                 Spacer(modifier = Modifier.height(8.dp))
-                SettingsGroup {
-                    SettingsItem("اختيار التنبية إقتراب الصلاة") { }
-                    Divider(color = AppDivider)
-                    SettingsItem("مستوي صوت إقتراب الاوقات") { }
+                SGroup {
+                    // تنبيه اقتراب الصلاة لكل صلاة
+                    var showApproachSoundScreen by remember { mutableStateOf(false) }
+                    SRow("اختيار التنبية إقتراب الصلاة") { showApproachSoundScreen = true }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
             }
+
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
+                    shape = RoundedCornerShape(12.dp)) {
                     Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
                         Text("ضبط مواقيت إقتراب الصلاة", modifier = Modifier.fillMaxWidth(),
                             textAlign = TextAlign.End, fontWeight = FontWeight.Bold, color = Color(0xFF444444))
-                        Spacer(modifier = Modifier.height(8.dp))
-                        prayers.forEachIndexed { i, (name, emoji, _) ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        Spacer(modifier = Modifier.height(4.dp))
+
+                        prayers.forEachIndexed { i, name ->
+                            val approachTime = baseTimes[i] - minutes[i] * 60000L
+                            val timeStr = if (approachTime > 0)
+                                com.yousefalaa.electronicmuezzin.utils.TimeFormatter.formatTime(approachTime)
+                            else "--:--"
+
+                            Row(modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // عداد - قيمة +
+                                verticalAlignment = Alignment.CenterVertically) {
+
+                                // عداد الدقائق
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Box(
-                                        modifier = Modifier.size(40.dp).background(Color(0xFF888888), RoundedCornerShape(8.dp)).clickable { if (values[i] > 0) values[i]-- },
-                                        contentAlignment = Alignment.Center
-                                    ) { Text("-", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold) }
-                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                        Text("${values[i]}", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-                                        Text(times[i], fontSize = 11.sp, color = Color(0xFF888888))
+                                    AdjustButton("-") {
+                                        if (minutes[i] > 0) {
+                                            minutes[i]--
+                                            vm.setApproachMinutes(minuteKeys[i], minutes[i])
+                                        }
                                     }
-                                    Box(
-                                        modifier = Modifier.size(40.dp).background(AppRed, RoundedCornerShape(8.dp)).clickable { if (values[i] < 120) values[i]++ },
-                                        contentAlignment = Alignment.Center
-                                    ) { Text("+", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold) }
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text("${minutes[i]}", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                                        Text(timeStr, fontSize = 11.sp, color = Color(0xFF888888))
+                                    }
+                                    AdjustButton("+") {
+                                        if (minutes[i] < 120) {
+                                            minutes[i]++
+                                            vm.setApproachMinutes(minuteKeys[i], minutes[i])
+                                        }
+                                    }
                                 }
-                                // اسم + مفتاح
+
+                                // الاسم + مفتاح (فقط للصلوات الخمس وليس الشروق)
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Switch(
-                                        checked = enabled[i], onCheckedChange = { enabled[i] = it },
-                                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AppRed)
-                                    )
-                                    Text(name, textAlign = TextAlign.End)
+                                    if (i != 1) { // الشروق ليس له مفتاح تفعيل منفصل
+                                        val ei = if (i > 1) i - 1 else i
+                                        Switch(
+                                            checked = enabled.getOrElse(ei) { true },
+                                            onCheckedChange = { v ->
+                                                if (ei < enabled.size) {
+                                                    enabled[ei] = v
+                                                    vm.setApproachEnabled(enabledKeys.getOrElse(ei) { "الفجر" }, v)
+                                                }
+                                            },
+                                            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AppRed)
+                                        )
+                                    }
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text(name, fontWeight = FontWeight.Medium, textAlign = TextAlign.End)
+                                        Text(emojis[i], fontSize = 16.sp)
+                                    }
                                 }
                             }
-                            if (i < prayers.size - 1) Divider(color = AppDivider)
+                            if (i < prayers.size - 1) SDivider()
                         }
                     }
                 }
@@ -353,25 +498,29 @@ fun ApproachTimesScreen(onBack: () -> Unit) {
     }
 }
 
-// ════════════════════════════════════════════════
-//  اختيار صوت الأذان لكل صلاة
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
+//  اختيار صوت الأذان
+// ════════════════════════════════════════════════════════
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AzanSoundSelectionScreen(onBack: () -> Unit) {
-    val prayers = listOf("أذان الفجر", "أذان الظهر", "أذان العصر", "أذان المغرب", "أذان العشاء")
-    val selectedSounds = remember { mutableStateListOf("إختيار متعدد", "إختيار متعدد", "إختيار متعدد", "إختيار متعدد", "إختيار متعدد") }
-    var showSoundPicker by remember { mutableStateOf<Int?>(null) }
+fun AzanSoundScreen(vm: SettingsViewModel, onBack: () -> Unit) {
+    val az by vm.azanSettings.collectAsState()
+    var pickingFor by remember { mutableStateOf<String?>(null) }
 
-    if (showSoundPicker != null) {
-        AzanMuezzinPicker(
-            prayerName = prayers[showSoundPicker!!],
-            currentSound = selectedSounds[showSoundPicker!!],
-            onSelect = { sound ->
-                selectedSounds[showSoundPicker!!] = sound
-                showSoundPicker = null
+    val prayers = listOf("الفجر","الظهر","العصر","المغرب","العشاء")
+    val currentSounds = listOf(az.fajrSound, az.dhuhrSound, az.asrSound, az.maghribSound, az.ishaSound)
+    val allSounds = PrayerNames.getAzanSounds()
+
+    if (pickingFor != null) {
+        val idx = prayers.indexOf(pickingFor)
+        MuezzinPickerScreen(
+            prayerName    = "أذان ${pickingFor!!}",
+            currentSound  = currentSounds.getOrElse(idx) { "" },
+            onSelect      = { sound ->
+                vm.setAzanSound(pickingFor!!, sound)
+                pickingFor = null
             },
-            onBack = { showSoundPicker = null }
+            onBack        = { pickingFor = null }
         )
         return
     }
@@ -384,14 +533,17 @@ fun AzanSoundSelectionScreen(onBack: () -> Unit) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(padding)) {
-            item { Spacer(modifier = Modifier.height(8.dp)) }
+    ) { pad ->
+        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(pad)) {
             item {
-                SettingsGroup {
+                Spacer(modifier = Modifier.height(8.dp))
+                SGroup {
                     prayers.forEachIndexed { i, prayer ->
-                        SettingsItemWithSub(prayer, selectedSounds[i]) { showSoundPicker = i }
-                        if (i < prayers.size - 1) Divider(color = AppDivider)
+                        SRowWithSub(
+                            title = "أذان $prayer",
+                            sub   = allSounds[currentSounds[i]] ?: currentSounds[i]
+                        ) { pickingFor = prayer }
+                        if (i < prayers.size - 1) SDivider()
                     }
                 }
             }
@@ -399,154 +551,56 @@ fun AzanSoundSelectionScreen(onBack: () -> Unit) {
     }
 }
 
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  اختيار المؤذن لصلاة معينة
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AzanMuezzinPicker(prayerName: String, currentSound: String, onSelect: (String) -> Unit, onBack: () -> Unit) {
-    val muezzins = listOf(
-        "الوضع الصامت" to "",
-        "إختيار متعدد" to "",
-        "علي بن أحمد الملا" to "مؤذن المسجد الحرام",
-        "عبدالباسط عبدالصمد" to "",
-        "محمد علي البنا" to "",
-        "ياسر الدوسري" to "",
-        "محمد رفعت" to "",
-        "عبدالمجيد السريحي" to "",
-        "ماهر المعيقلي" to "مؤذن المسجد الحرام",
-        "عبدالرحمن السديس" to "مؤذن المسجد الحرام",
-        "سعود الشريم" to "مؤذن المسجد الحرام",
-        "علي الحذيفي" to "مؤذن المسجد النبوي",
-        "عبدالمحسن القاسم" to "مؤذن المسجد النبوي",
-        "إختيار من الهاتف" to ""
-    )
-    var selected by remember { mutableStateOf(currentSound) }
+fun MuezzinPickerScreen(
+    prayerName  : String,
+    currentSound: String,
+    onSelect    : (String) -> Unit,
+    onBack      : () -> Unit
+) {
+    val groups = PrayerNames.getGroupedSounds()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("أذان $prayerName", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
+                title = { Text(prayerName, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
                 navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowForwardIos, null) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(padding)) {
+    ) { pad ->
+        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(pad)) {
             item { Spacer(modifier = Modifier.height(8.dp)) }
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column {
-                        muezzins.forEachIndexed { i, (name, sub) ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().clickable {
-                                    selected = name
-                                    onSelect(name)
-                                }.padding(horizontal = 16.dp, vertical = 12.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    if (i > 1) {
-                                        Text("▶", color = AppRed, fontSize = 18.sp)
-                                        if (i < muezzins.size - 1)
-                                            Text("🎬", fontSize = 18.sp)
-                                    }
-                                }
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text(name, fontWeight = FontWeight.Medium)
-                                    if (sub.isNotEmpty())
-                                        Text(sub, color = AppRed, fontSize = 12.sp)
-                                }
-                                RadioButton(
-                                    selected = selected == name,
-                                    onClick = { selected = name; onSelect(name) },
-                                    colors = RadioButtonDefaults.colors(selectedColor = AppRed)
-                                )
-                            }
-                            if (i < muezzins.size - 1) Divider(color = AppDivider)
-                        }
-                    }
+            groups.forEach { (groupTitle, sounds) ->
+                item {
+                    Text(groupTitle, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                        textAlign = TextAlign.End, color = Color(0xFF888888), fontSize = 13.sp)
                 }
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-        }
-    }
-}
-
-// ════════════════════════════════════════════════
-//  ضبط صوت الأذان (مستوى الصوت لكل صلاة)
-// ════════════════════════════════════════════════
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ApproachSoundScreen(onBack: () -> Unit) {
-    val prayers = listOf(
-        "قبل أذان الفجر" to "🌙",
-        "قبل أذان الظهر" to "☀️",
-        "قبل أذان العصر" to "🌤️",
-        "قبل أذان المغرب" to "🌇",
-        "قبل أذان العشاء" to "🌙"
-    )
-    val volumes = remember { mutableStateListOf(0.3f, 0.4f, 0.4f, 0.4f, 0.4f) }
-    val usePhone = remember { mutableStateListOf(false, false, false, false, false) }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("مستوي صوت إقتراب الاوقات", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowForwardIos, null) } },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
-            )
-        }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(padding)) {
-            items(prayers.size) { i ->
-                val (name, emoji) = prayers[i]
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("$name  $emoji", fontWeight = FontWeight.Bold, textAlign = TextAlign.End)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            Text("🔊", fontSize = 24.sp)
-                            Text("〰", fontSize = 24.sp)
-                            Text("📱", fontSize = 24.sp)
-                        }
-                        Slider(
-                            value = volumes[i],
-                            onValueChange = { volumes[i] = it },
-                            colors = SliderDefaults.colors(thumbColor = AppRed, activeTrackColor = AppRed)
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("مستوي صوت الهاتف", fontSize = 13.sp, color = Color(0xFF666666))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            RadioButton(
-                                selected = usePhone[i],
-                                onClick = { usePhone[i] = !usePhone[i] },
-                                colors = RadioButtonDefaults.colors(selectedColor = AppRed)
-                            )
+                item {
+                    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(12.dp)) {
+                        Column {
+                            sounds.forEachIndexed { i, (key, label) ->
+                                Row(modifier = Modifier.fillMaxWidth().clickable { onSelect(key) }.padding(horizontal = 16.dp, vertical = 14.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        RadioButton(selected = currentSound == key, onClick = { onSelect(key) },
+                                            colors = RadioButtonDefaults.colors(selectedColor = AppRed))
+                                        Text("▶", color = AppRed, fontSize = 14.sp)
+                                    }
+                                    Text(label, fontWeight = if (currentSound == key) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (currentSound == key) AppRed else Color.Black)
+                                }
+                                if (i < sounds.size - 1) SDivider()
+                            }
                         }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
             item { Spacer(modifier = Modifier.height(24.dp)) }
@@ -554,63 +608,55 @@ fun ApproachSoundScreen(onBack: () -> Unit) {
     }
 }
 
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  ضبط شاشة الأذان
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AzanScreenSettingsScreen(onBack: () -> Unit) {
-    var showOnTop by remember { mutableStateOf(true) }
-    var autoStop by remember { mutableStateOf(false) }
-    var stopMinutes by remember { mutableStateOf(5) }
+fun AzanScreenSettings(vm: SettingsViewModel, onBack: () -> Unit) {
+    val az by vm.azanSettings.collectAsState()
+    var showScreen  by remember(az) { mutableStateOf(az.showAzanScreen) }
+    var autoStop    by remember(az) { mutableStateOf(az.autoStopAzan) }
+    var stopMinutes by remember(az) { mutableStateOf(az.autoStopMinutes) }
+
+    fun save() = vm.setAzanScreenSettings(showScreen, autoStop, stopMinutes)
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("ضبط شاشة الأذان", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.Default.ArrowForwardIos, null) } },
+                navigationIcon = { IconButton(onClick = { save(); onBack() }) { Icon(Icons.Default.ArrowForwardIos, null) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(padding)) {
+    ) { pad ->
+        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(pad)) {
             item {
                 Spacer(modifier = Modifier.height(8.dp))
-                SettingsGroup {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Switch(checked = showOnTop, onCheckedChange = { showOnTop = it },
+                SGroup {
+                    // عرض شاشة الأذان
+                    Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Switch(checked = showScreen, onCheckedChange = { showScreen = it; save() },
                             colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AppRed))
-                        Text("عرض شاشة الأذان فوق التطبيقات", fontWeight = FontWeight.Medium)
+                        Text("عرض شاشة الأذان كاملة", fontWeight = FontWeight.Medium)
                     }
-                    Divider(color = AppDivider)
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Switch(checked = autoStop, onCheckedChange = { autoStop = it },
+                    SDivider()
+                    // إيقاف تلقائي
+                    Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Switch(checked = autoStop, onCheckedChange = { autoStop = it; save() },
                             colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AppRed))
                         Text("إيقاف الأذان تلقائياً", fontWeight = FontWeight.Medium)
                     }
                     if (autoStop) {
-                        Divider(color = AppDivider)
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Box(Modifier.size(36.dp).background(Color(0xFF888888), RoundedCornerShape(8.dp)).clickable { if (stopMinutes > 1) stopMinutes-- }, contentAlignment = Alignment.Center) {
-                                    Text("-", color = Color.White, fontWeight = FontWeight.Bold)
-                                }
-                                Text("$stopMinutes دقيقة", fontWeight = FontWeight.Bold)
-                                Box(Modifier.size(36.dp).background(AppRed, RoundedCornerShape(8.dp)).clickable { if (stopMinutes < 30) stopMinutes++ }, contentAlignment = Alignment.Center) {
-                                    Text("+", color = Color.White, fontWeight = FontWeight.Bold)
-                                }
+                        SDivider()
+                        Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                AdjustButton("-") { if (stopMinutes > 1) { stopMinutes--; save() } }
+                                Text("$stopMinutes دقيقة", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                AdjustButton("+") { if (stopMinutes < 30) { stopMinutes++; save() } }
                             }
                             Text("مدة الأذان", fontWeight = FontWeight.Medium)
                         }
@@ -621,13 +667,20 @@ fun AzanScreenSettingsScreen(onBack: () -> Unit) {
     }
 }
 
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  المزيد من الإعدادات
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreSettingsScreen(navController: NavController, onBack: () -> Unit) {
-    var darkMode by remember { mutableStateOf(false) }
+fun MoreSettings(vm: SettingsViewModel, onBack: () -> Unit) {
+    val ps by vm.prayerSettings.collectAsState()
+    var showCalcDialog by remember { mutableStateOf(false) }
+    var showRamadan    by remember { mutableStateOf(false) }
+
+    if (showRamadan) {
+        RamadanSettingsScreen(vm) { showRamadan = false }
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -637,34 +690,169 @@ fun MoreSettingsScreen(navController: NavController, onBack: () -> Unit) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
             )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(padding)) {
+    ) { pad ->
+        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(pad)) {
             item {
                 Spacer(modifier = Modifier.height(8.dp))
-                SettingsGroup {
-                    SettingsItem("ضبط التاريخ الهجري") { }
-                    Divider(color = AppDivider)
-                    SettingsItem("حجم الخط والالوان") { }
-                    Divider(color = AppDivider)
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Switch(checked = darkMode, onCheckedChange = { darkMode = it },
-                            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AppRed))
-                        Text("الوضع المظلم", fontWeight = FontWeight.Medium)
+                // المجموعة الأولى
+                SGroup {
+                    SRowWithSub("أذكار المسلم اليومية",  "") { }
+                    SDivider()
+                    SRow("قيام الليل")           { }
+                    SDivider()
+                    SRow("تواشيح الفجر")         { }
+                    SDivider()
+                    SRow("صيام التطوع")          { }
+                    SDivider()
+                    SRow("إعدادات يوم الجمعة")   { }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // المجموعة الثانية
+                SGroup {
+                    SRow("إعدادات رمضان") { showRamadan = true }
+                    SDivider()
+                    SRow("تكبيرات العيد والعشر من ذي الحجة") { }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // المجموعة الثالثة
+                SGroup {
+                    SRowWithSub("ضبط التاريخ الهجري", "") { }
+                    SDivider()
+                    SRow("حجم الخط والالوان") { }
+                    SDivider()
+                    SRowWithSub("طريقة الحساب", PrayerTimesCalculator.CalculationMethod.valueOf(ps.calculationMethod).nameAr) {
+                        showCalcDialog = true
                     }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
-                SettingsGroup {
-                    SettingsItemWithSub("اللغة", "العربية") { }
-                    Divider(color = AppDivider)
-                    SettingsItem("تغيير الموقع") { }
+
+                // المجموعة الرابعة
+                SGroup {
+                    SRowWithSub("اللغة", "العربية") { }
+                    SDivider()
+                    SRow("تغيير الموقع") { }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+        }
+    }
+
+    if (showCalcDialog) {
+        Dialog(onDismissRequest = { showCalcDialog = false }) {
+            Card(shape = RoundedCornerShape(16.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("طريقة الحساب", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    PrayerTimesCalculator.CalculationMethod.values().forEach { method ->
+                        Row(modifier = Modifier.fillMaxWidth().clickable {
+                            vm.setCalculationMethod(method.name)
+                            showCalcDialog = false
+                        }.padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                            RadioButton(selected = ps.calculationMethod == method.name, onClick = { vm.setCalculationMethod(method.name); showCalcDialog = false },
+                                colors = RadioButtonDefaults.colors(selectedColor = AppRed))
+                            Text(method.nameAr)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ════════════════════════════════════════════════════════
+//  إعدادات رمضان الكاملة
+// ════════════════════════════════════════════════════════
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RamadanSettingsScreen(vm: SettingsViewModel, onBack: () -> Unit) {
+    val saved by vm.ramadanSettings.collectAsState()
+    var s by remember(saved) { mutableStateOf(saved) }
+
+    fun save() = vm.setRamadanSettings(s)
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("إعدادات رمضان", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
+                navigationIcon = { IconButton(onClick = { save(); onBack() }) { Icon(Icons.Default.ArrowForwardIos, null) } },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        }
+    ) { pad ->
+        LazyColumn(modifier = Modifier.fillMaxSize().background(AppGray).padding(pad)) {
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                // مجموعة التنبيهات
+                SGroup {
+                    SRow("منبة السحور") { }
+                    SDivider()
+                    SRow("تلاوة قرآنية قبل المغرب") { }
+                    SDivider()
+                    // مدفع الإفطار
+                    Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Switch(checked = s.iftarCannonEnabled,
+                            onCheckedChange = { s = s.copy(iftarCannonEnabled = it); save() },
+                            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AppRed))
+                        Text("مدفع الافطار قبل المغرب", fontWeight = FontWeight.Medium)
+                    }
+                    SDivider()
+                    // دعاء الإفطار
+                    Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Switch(checked = s.iftarDuaEnabled,
+                            onCheckedChange = { s = s.copy(iftarDuaEnabled = it); save() },
+                            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AppRed))
+                        Text("دعاء الافطار بعد المغرب", fontWeight = FontWeight.Medium)
+                    }
+                    SDivider()
+                    // صامت أثناء التراويح
+                    Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Switch(checked = s.silentDuringTaraweh,
+                                onCheckedChange = { s = s.copy(silentDuringTaraweh = it); save() },
+                                colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AppRed))
+                            if (s.silentDuringTaraweh) {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    AdjustButton("-") { if (s.tarawehSilentMinutes > 10) { s = s.copy(tarawehSilentMinutes = s.tarawehSilentMinutes - 10); save() } }
+                                    Text("${s.tarawehSilentMinutes}\nدقيقة", fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+                                    AdjustButton("+") { if (s.tarawehSilentMinutes < 180) { s = s.copy(tarawehSilentMinutes = s.tarawehSilentMinutes + 10); save() } }
+                                }
+                            }
+                        }
+                        Text("صامت اثناء صلاة التراويح", fontWeight = FontWeight.Medium)
+                    }
                 }
                 Spacer(modifier = Modifier.height(12.dp))
-                SettingsGroup {
-                    SettingsItem("إلغاء الاعلانات") { }
+
+                // عدد الختمات
+                Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(12.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("عدد الختمات في رمضان", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                            AdjustButton("-") { if (s.khatmatCount > 1) { s = s.copy(khatmatCount = s.khatmatCount - 1); save() } }
+                            Text("${s.khatmatCount.toString().padStart(2,'0')}", fontSize = 48.sp, fontWeight = FontWeight.Bold)
+                            AdjustButton("+") { if (s.khatmatCount < 30) { s = s.copy(khatmatCount = s.khatmatCount + 1); save() } }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // بدأ القراءة من الفاتحة
+                SGroup {
+                    Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Switch(checked = s.startFromFatiha,
+                            onCheckedChange = { s = s.copy(startFromFatiha = it); save() },
+                            colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AppRed))
+                        Text("بدأ القراءة من الفاتحة مع اول رمضان", fontWeight = FontWeight.Medium)
+                    }
                 }
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -672,69 +860,58 @@ fun MoreSettingsScreen(navController: NavController, onBack: () -> Unit) {
     }
 }
 
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 //  مكوّنات مساعدة
-// ════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════
 @Composable
-fun SettingsGroup(content: @Composable ColumnScope.() -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+fun SGroup(content: @Composable ColumnScope.() -> Unit) {
+    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        shape = RoundedCornerShape(12.dp)
-    ) {
+        shape = RoundedCornerShape(12.dp)) {
         Column(modifier = Modifier.fillMaxWidth(), content = content)
     }
 }
 
 @Composable
-fun SettingsItem(title: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("‹", fontSize = 20.sp, color = Color(0xFF888888))
-        Text(title, fontWeight = FontWeight.Medium, textAlign = TextAlign.End)
+fun SRow(title: String, onClick: () -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Text("‹", fontSize = 20.sp, color = Color(0xFFBBBBBB))
+        Text(title, fontWeight = FontWeight.Medium)
     }
 }
 
 @Composable
-fun SettingsItemWithSub(title: String, sub: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text("‹", fontSize = 20.sp, color = Color(0xFF888888))
+fun SRowWithSub(title: String, sub: String, onClick: () -> Unit) {
+    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        Text("‹", fontSize = 20.sp, color = Color(0xFFBBBBBB))
         Column(horizontalAlignment = Alignment.End) {
             Text(title, fontWeight = FontWeight.Medium)
-            Text(sub, color = AppRed, fontSize = 13.sp)
+            if (sub.isNotEmpty()) Text(sub, color = AppRed, fontSize = 13.sp)
         }
     }
 }
 
 @Composable
-fun PrayerTimeAdjustRow(name: String, emoji: String, time: String, value: Int, onMinus: () -> Unit, onPlus: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Box(Modifier.size(42.dp).background(Color(0xFF888888), RoundedCornerShape(8.dp)).clickable(onClick = onMinus), contentAlignment = Alignment.Center) {
-                Text("-", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("$value", fontSize = 26.sp, fontWeight = FontWeight.Bold)
-                Text(time, fontSize = 11.sp, color = Color(0xFF888888))
-            }
-            Box(Modifier.size(42.dp).background(AppRed, RoundedCornerShape(8.dp)).clickable(onClick = onPlus), contentAlignment = Alignment.Center) {
-                Text("+", color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-            }
-        }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(name, textAlign = TextAlign.End)
-            Text(emoji, fontSize = 20.sp)
-        }
+fun SDivider() = Divider(modifier = Modifier.padding(horizontal = 16.dp), color = AppDivider, thickness = 0.5.dp)
+
+@Composable
+fun RedButton(label: String, onClick: () -> Unit) {
+    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+        .background(AppRed, RoundedCornerShape(12.dp))
+        .clickable(onClick = onClick).padding(16.dp)) {
+        Text(label, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp,
+            modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End)
+    }
+}
+
+@Composable
+fun AdjustButton(label: String, onClick: () -> Unit) {
+    Box(modifier = Modifier.size(42.dp)
+        .background(if (label == "-") Color(0xFF888888) else AppRed, RoundedCornerShape(8.dp))
+        .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center) {
+        Text(label, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
     }
 }
