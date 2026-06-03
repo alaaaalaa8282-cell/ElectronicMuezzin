@@ -47,7 +47,18 @@ class MainViewModel @Inject constructor(
 
     init {
         startClock()
-        observeSettingsAndCalculate()
+        // راقب أي تغيير في الإعدادات وأعد الحساب والجدولة
+        viewModelScope.launch {
+            combine(
+                settingsRepo.prayerSettings,
+                settingsRepo.azanSettings
+            ) { ps, az -> ps to az }
+            .collect { (ps, az) ->
+                if (ps.latitude != 0.0 && ps.longitude != 0.0) {
+                    calculateAndSchedule(ps, az)
+                }
+            }
+        }
     }
 
     private fun startClock() {
@@ -63,45 +74,45 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun observeSettingsAndCalculate() {
-        viewModelScope.launch {
-            settingsRepo.prayerSettings.collect { settings ->
-                if (settings.latitude != 0.0 && settings.longitude != 0.0) {
-                    calculatePrayerTimes(settings)
-                }
-            }
-        }
-    }
-
-    fun calculatePrayerTimes(settings: PrayerSettings) {
-        viewModelScope.launch {
+    private fun calculateAndSchedule(settings: PrayerSettings, az: PrayerAzanSettings) {
+        viewModelScope.launch(Dispatchers.Default) {
             try {
-                val method = PrayerTimesCalculator.CalculationMethod.valueOf(settings.calculationMethod)
+                val method    = PrayerTimesCalculator.CalculationMethod.valueOf(settings.calculationMethod)
                 val asrMethod = PrayerTimesCalculator.AsrMethod.valueOf(settings.asrMethod)
-                val tz = getTimeZoneOffset()
+                val tz        = getTimeZoneOffset()
+
                 val calc = PrayerTimesCalculator.calculate(
                     settings.latitude, settings.longitude, tz, method, asrMethod
                 )
+
+                // طبّق تعديلات الأوفست (دقائق + أو -)
                 val model = PrayerTimesModel(
-                    fajr = calc.fajr,
-                    sunrise = calc.sunrise,
-                    dhuhr = calc.dhuhr,
-                    asr = calc.asr,
-                    maghrib = calc.maghrib,
-                    isha = calc.isha,
+                    fajr     = calc.fajr     + az.fajrOffset    * 60_000L,
+                    sunrise  = calc.sunrise  + az.sunriseOffset * 60_000L,
+                    dhuhr    = calc.dhuhr    + az.dhuhrOffset   * 60_000L,
+                    asr      = calc.asr      + az.asrOffset     * 60_000L,
+                    maghrib  = calc.maghrib  + az.maghribOffset * 60_000L,
+                    isha     = calc.isha     + az.ishaOffset    * 60_000L,
                     midnight = calc.midnight
                 )
-                _prayerTimes.value = model
-                _nextPrayer.value = model.getNextPrayer()
 
-                // Schedule alarms
-                azanSettings.value.let { az ->
-                    AlarmScheduler.schedulePrayerAlarms(context, model, az)
+                withContext(Dispatchers.Main) {
+                    _prayerTimes.value = model
+                    _nextPrayer.value  = model.getNextPrayer()
                 }
+
+                // جدول الأذانات
+                AlarmScheduler.schedulePrayerAlarms(context, model, az)
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
+    }
+
+    // استدعاء خارجي لو احتجنا
+    fun calculatePrayerTimes(settings: PrayerSettings) {
+        calculateAndSchedule(settings, azanSettings.value)
     }
 
     fun fetchLocationAndSave() {
@@ -112,7 +123,7 @@ class MainViewModel @Inject constructor(
                     location?.let { loc ->
                         viewModelScope.launch {
                             val cityName = getCityName(loc.latitude, loc.longitude)
-                            val tz = getTimeZoneOffset()
+                            val tz       = getTimeZoneOffset()
                             settingsRepo.saveLocation(loc.latitude, loc.longitude, cityName, tz)
                         }
                     }
@@ -125,7 +136,7 @@ class MainViewModel @Inject constructor(
 
     private fun getCityName(lat: Double, lng: Double): String {
         return try {
-            val geocoder = Geocoder(context, Locale("ar"))
+            val geocoder  = Geocoder(context, Locale("ar"))
             @Suppress("DEPRECATION")
             val addresses = geocoder.getFromLocation(lat, lng, 1)
             addresses?.firstOrNull()?.let {
@@ -137,60 +148,40 @@ class MainViewModel @Inject constructor(
     }
 
     private fun getTimeZoneOffset(): Double {
-        val tz = TimeZone.getDefault()
+        val tz     = TimeZone.getDefault()
         val offset = tz.getOffset(System.currentTimeMillis())
-        return offset / 3600000.0
+        return offset / 3_600_000.0
     }
 
     fun getQiblaDirection(): Double {
-        val settings = prayerSettings.value
-        return QiblaCalculator.getQiblaDirection(settings.latitude, settings.longitude)
+        val s = prayerSettings.value
+        return QiblaCalculator.getQiblaDirection(s.latitude, s.longitude)
     }
 
     fun getDistanceToMakkah(): Double {
-        val settings = prayerSettings.value
-        return QiblaCalculator.getDistanceToMakkah(settings.latitude, settings.longitude)
+        val s = prayerSettings.value
+        return QiblaCalculator.getDistanceToMakkah(s.latitude, s.longitude)
     }
 
+    // ── للتوافق مع الكود القديم ──────────────────────────
     fun updateCalcMethod(method: String) {
-        viewModelScope.launch {
-            settingsRepo.saveCalculationMethod(method)
-        }
+        viewModelScope.launch { settingsRepo.saveCalculationMethod(method) }
     }
 
     fun updateAsrMethod(method: String) {
-        viewModelScope.launch {
-            settingsRepo.saveAsrMethod(method)
-        }
+        viewModelScope.launch { settingsRepo.saveAsrMethod(method) }
     }
 
     fun togglePrayerAzan(prayerName: String, enabled: Boolean) {
         viewModelScope.launch {
-            val current = azanSettings.value
-            val updated = when (prayerName) {
-                "الفجر"  -> current.copy(fajrEnabled    = enabled)
-                "الظهر"  -> current.copy(dhuhrEnabled   = enabled)
-                "العصر"  -> current.copy(asrEnabled     = enabled)
-                "المغرب" -> current.copy(maghribEnabled = enabled)
-                "العشاء" -> current.copy(ishaEnabled    = enabled)
-                else     -> current
-            }
-            settingsRepo.saveAzanSettings(updated)
+            settingsRepo.saveAzanEnabled(prayerName, enabled)
         }
     }
 
     fun setPrayerAzanSound(prayerName: String, soundKey: String) {
         viewModelScope.launch {
-            val current = azanSettings.value
-            val updated = when (prayerName) {
-                "الفجر"  -> current.copy(fajrSound    = soundKey)
-                "الظهر"  -> current.copy(dhuhrSound   = soundKey)
-                "العصر"  -> current.copy(asrSound     = soundKey)
-                "المغرب" -> current.copy(maghribSound = soundKey)
-                "العشاء" -> current.copy(ishaSound    = soundKey)
-                else     -> current
-            }
-            settingsRepo.saveAzanSettings(updated)
+            settingsRepo.saveAzanSound(prayerName, soundKey)
         }
     }
 }
+
