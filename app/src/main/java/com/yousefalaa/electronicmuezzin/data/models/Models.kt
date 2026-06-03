@@ -29,21 +29,10 @@ data class PrayerTimesModel(
         val now = System.currentTimeMillis()
         return toList().firstOrNull { it.second > now }
     }
-
-    fun getCurrentOrNextPrayer(): Triple<String, Long, Boolean> {
-        val now = System.currentTimeMillis()
-        val prayers = toList()
-        for (i in prayers.indices) {
-            if (prayers[i].second > now) {
-                return Triple(prayers[i].first, prayers[i].second, false)
-            }
-        }
-        return Triple(prayers[0].first, prayers[0].second + 86400000L, false)
-    }
 }
 
 // ========================
-// إعدادات الصلاة
+// إعدادات الموقع والحساب
 // ========================
 data class PrayerSettings(
     val calculationMethod: String = "EGYPT",
@@ -52,28 +41,85 @@ data class PrayerSettings(
     val longitude: Double = 0.0,
     val cityName: String = "",
     val timeZoneOffset: Double = 2.0,
-    val language: String = "ar"
+    val language: String = "ar",
+    val summerTimeOffset: Int = 0  // التوقيت الصيفي بالدقائق
 )
 
 // ========================
-// إعدادات الأذان لكل صلاة
+// إعدادات الأذان الكاملة
 // ========================
 data class PrayerAzanSettings(
-    val fajrSound: String = "azan_fajr",
-    val dhuhrSound: String = "azan_makkah",
-    val asrSound: String = "azan_makkah",
-    val maghribSound: String = "azan_makkah",
-    val ishaSound: String = "azan_makkah",
+    // أصوات الأذان
+    val fajrSound: String = "azan_fajr_makkah",
+    val dhuhrSound: String = "azan_makkah_sudais",
+    val asrSound: String = "azan_makkah_sudais",
+    val maghribSound: String = "azan_makkah_sudais",
+    val ishaSound: String = "azan_makkah_sudais",
+    // تفعيل الأذان
     val fajrEnabled: Boolean = true,
     val dhuhrEnabled: Boolean = true,
     val asrEnabled: Boolean = true,
     val maghribEnabled: Boolean = true,
     val ishaEnabled: Boolean = true,
+    // تعديل المواقيت بالدقائق (+/-)
+    val fajrOffset: Int = 0,
+    val sunriseOffset: Int = 0,
+    val dhuhrOffset: Int = 0,
+    val asrOffset: Int = 0,
+    val maghribOffset: Int = 0,
+    val ishaOffset: Int = 0,
+    // مواقيت الإقامة (بعد الأذان بكم دقيقة)
+    val fajrIqama: Int = 20,
+    val dhuhrIqama: Int = 10,
+    val asrIqama: Int = 10,
+    val maghribIqama: Int = 5,
+    val ishaIqama: Int = 15,
+    // تفعيل تنبيه اقتراب الصلاة
+    val fajrApproachEnabled: Boolean = true,
+    val dhuhrApproachEnabled: Boolean = true,
+    val asrApproachEnabled: Boolean = true,
+    val maghribApproachEnabled: Boolean = true,
+    val ishaApproachEnabled: Boolean = true,
+    // دقائق اقتراب الصلاة
+    val fajrApproachMinutes: Int = 20,
+    val sunriseApproachMinutes: Int = 10,
+    val dhuhrApproachMinutes: Int = 10,
+    val asrApproachMinutes: Int = 10,
+    val maghribApproachMinutes: Int = 15,
+    val ishaApproachMinutes: Int = 15,
+    // صوت اقتراب الصلاة
+    val fajrApproachSound: String = "approach_fajr",
+    val dhuhrApproachSound: String = "approach_prayer",
+    val asrApproachSound: String = "approach_prayer",
+    val maghribApproachSound: String = "approach_prayer",
+    val ishaApproachSound: String = "approach_prayer",
+    // إعدادات شاشة الأذان
+    val showAzanScreen: Boolean = true,
+    val autoStopAzan: Boolean = false,
+    val autoStopMinutes: Int = 5,
+    // إشعار تنبيه
     val fajrNotification: Boolean = true,
     val dhuhrNotification: Boolean = true,
     val asrNotification: Boolean = true,
     val maghribNotification: Boolean = true,
     val ishaNotification: Boolean = true
+)
+
+// ========================
+// إعدادات رمضان
+// ========================
+data class RamadanSettings(
+    val suhoorAlarmEnabled: Boolean = true,
+    val iftarAlarmEnabled: Boolean = true,
+    val suhoorMinutesBefore: Int = 30,
+    val showCountdown: Boolean = true,
+    val iftarCannonEnabled: Boolean = true,
+    val iftarDuaEnabled: Boolean = true,
+    val silentDuringTaraweh: Boolean = false,
+    val tarawehSilentMinutes: Int = 60,
+    val khatmatCount: Int = 1,
+    val startFromFatiha: Boolean = true,
+    val quranBeforeMaghrib: Boolean = false
 )
 
 // ========================
@@ -101,15 +147,6 @@ enum class DhikrCategory(val nameAr: String) {
 }
 
 // ========================
-// تسبيح
-// ========================
-data class TasbihSession(
-    val dhikrText: String,
-    val target: Int = 33,
-    val current: Int = 0
-)
-
-// ========================
 // ختم القرآن
 // ========================
 @Entity(tableName = "quran_khatma")
@@ -127,106 +164,57 @@ data class QuranKhatma(
 }
 
 // ========================
-// رمضان
-// ========================
-data class RamadanSettings(
-    val suhoorAlarmEnabled: Boolean = true,
-    val iftarAlarmEnabled: Boolean = true,
-    val suhoorMinutesBefore: Int = 30,
-    val showCountdown: Boolean = true
-)
-
-// ========================
-// أسماء الصلوات
+// أسماء الصلوات والأصوات
 // ========================
 object PrayerNames {
     val arabic = listOf("الفجر", "الشروق", "الظهر", "العصر", "المغرب", "العشاء")
-    val icons = listOf("🌙", "☀️", "☀️", "🌤️", "🌅", "🌙")
+    val emojis = listOf("🌙", "🌅", "☀️", "🌤️", "🌇", "🌙")
 
-    /**
-     * قائمة أصوات الأذان الكاملة
-     * المفتاح = اسم الملف في res/raw (بدون امتداد)
-     * القيمة = الاسم العربي الذي يظهر للمستخدم
-     */
     fun getAzanSounds(): LinkedHashMap<String, String> = linkedMapOf(
-        // ─── الحرمين الشريفين ───
-        "azan_makkah_sudais"        to "مكة المكرمة - الشيخ السديس",
-        "azan_makkah_shuraim"       to "مكة المكرمة - الشيخ الشريم",
-        "azan_makkah_ali_mullah"    to "مكة المكرمة - الشيخ علي ملا",
-        "azan_makkah_ajmi"          to "مكة المكرمة - الشيخ العجمي",
-        "azan_makkah_ghamdi"        to "مكة المكرمة - الشيخ الغامدي",
-        "azan_madinah_budayr"       to "المدينة المنورة - الشيخ البديّر",
-        "azan_madinah_qahtani"      to "المدينة المنورة - الشيخ القحطاني",
-        // ─── أذان الفجر ───
-        "azan_fajr_makkah"          to "أذان الفجر - مكة المكرمة",
-        "azan_fajr_madinah"         to "أذان الفجر - المدينة المنورة",
-        "azan_fajr_classic"         to "أذان الفجر - كلاسيكي",
-        // ─── مؤذنون مشهورون ───
-        "azan_abdulbasit"           to "عبد الباسط عبد الصمد",
-        "azan_minshawi"             to "محمد صديق المنشاوي",
-        "azan_husary"               to "محمود خليل الحصري",
-        "azan_tablawi"              to "محمد الطبلاوي",
-        "azan_ajmy"                 to "أحمد العجمي",
-        "azan_afasy"                to "مشاري راشد العفاسي",
-        // ─── أذانات دول عربية ───
-        "azan_egypt_classic"        to "أذان مصري - كلاسيكي",
-        "azan_egypt_radio"          to "أذان مصري - إذاعة القرآن",
-        "azan_turkey"               to "أذان تركي",
-        "azan_iraq"                 to "أذان عراقي",
-        "azan_morocco"              to "أذان مغربي",
-        "azan_levant"               to "أذان شامي",
-        // ─── أذانات قصيرة وبسيطة ───
-        "azan_short"                to "أذان قصير",
-        "azan_simple"               to "أذان بسيط",
-        // ─── تنبيه فقط ───
-        "notification_only"         to "🔔 تنبيه بدون أذان"
+        "azan_makkah_sudais"     to "علي بن أحمد الملا - مكة",
+        "azan_makkah_shuraim"    to "سعود الشريم - مكة",
+        "azan_makkah_maher"      to "ماهر المعيقلي - مكة",
+        "azan_makkah_sudais2"    to "عبدالرحمن السديس - مكة",
+        "azan_madinah_budayr"    to "ياسر الدوسري - المدينة",
+        "azan_madinah_qahtani"   to "علي الحذيفي - المدينة",
+        "azan_fajr_makkah"       to "أذان الفجر - مكة المكرمة",
+        "azan_fajr_madinah"      to "أذان الفجر - المدينة المنورة",
+        "azan_abdulbasit"        to "عبدالباسط عبدالصمد",
+        "azan_minshawi"          to "محمد صديق المنشاوي",
+        "azan_husary"            to "محمود خليل الحصري",
+        "azan_tablawi"           to "محمد الطبلاوي",
+        "azan_egypt_classic"     to "أذان مصري كلاسيكي",
+        "azan_egypt_radio"       to "إذاعة القرآن الكريم",
+        "azan_short"             to "أذان قصير",
+        "silent_mode"            to "الوضع الصامت"
     )
 
-    /** الأصوات الافتراضية لكل صلاة */
-    val defaultSounds = mapOf(
-        "الفجر"   to "azan_fajr_makkah",
-        "الظهر"   to "azan_makkah_sudais",
-        "العصر"   to "azan_makkah_sudais",
-        "المغرب"  to "azan_makkah_sudais",
-        "العشاء"  to "azan_makkah_sudais"
-    )
-
-    /** تجميع الأصوات في مجموعات للعرض في الإعدادات */
     fun getGroupedSounds(): Map<String, List<Pair<String, String>>> = mapOf(
         "الحرمين الشريفين" to listOf(
-            "azan_makkah_sudais"     to "مكة - السديس",
-            "azan_makkah_shuraim"   to "مكة - الشريم",
-            "azan_makkah_ali_mullah" to "مكة - علي ملا",
-            "azan_makkah_ajmi"      to "مكة - العجمي",
-            "azan_makkah_ghamdi"    to "مكة - الغامدي",
-            "azan_madinah_budayr"   to "المدينة - البديّر",
-            "azan_madinah_qahtani"  to "المدينة - القحطاني"
+            "azan_makkah_sudais"  to "علي بن أحمد الملا",
+            "azan_makkah_shuraim" to "سعود الشريم",
+            "azan_makkah_maher"   to "ماهر المعيقلي",
+            "azan_makkah_sudais2" to "عبدالرحمن السديس",
+            "azan_madinah_budayr" to "ياسر الدوسري",
+            "azan_madinah_qahtani" to "علي الحذيفي"
         ),
         "أذان الفجر" to listOf(
             "azan_fajr_makkah"   to "فجر مكة",
-            "azan_fajr_madinah"  to "فجر المدينة",
-            "azan_fajr_classic"  to "فجر كلاسيكي"
+            "azan_fajr_madinah"  to "فجر المدينة"
         ),
         "مؤذنون مشهورون" to listOf(
-            "azan_abdulbasit" to "عبد الباسط",
-            "azan_minshawi"   to "المنشاوي",
-            "azan_husary"     to "الحصري",
-            "azan_tablawi"    to "الطبلاوي",
-            "azan_ajmy"       to "أحمد العجمي",
-            "azan_afasy"      to "العفاسي"
+            "azan_abdulbasit" to "عبدالباسط عبدالصمد",
+            "azan_minshawi"   to "محمد صديق المنشاوي",
+            "azan_husary"     to "محمود خليل الحصري",
+            "azan_tablawi"    to "محمد الطبلاوي"
         ),
         "أذانات عربية" to listOf(
             "azan_egypt_classic" to "مصري كلاسيكي",
-            "azan_egypt_radio"   to "إذاعة القرآن",
-            "azan_turkey"        to "تركي",
-            "azan_iraq"          to "عراقي",
-            "azan_morocco"       to "مغربي",
-            "azan_levant"        to "شامي"
+            "azan_egypt_radio"   to "إذاعة القرآن"
         ),
         "أخرى" to listOf(
-            "azan_short"        to "أذان قصير",
-            "azan_simple"       to "بسيط",
-            "notification_only" to "🔔 تنبيه فقط"
+            "azan_short"  to "أذان قصير",
+            "silent_mode" to "الوضع الصامت"
         )
     )
 }
