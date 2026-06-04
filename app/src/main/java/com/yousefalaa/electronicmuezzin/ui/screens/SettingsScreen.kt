@@ -174,7 +174,7 @@ fun AzanTimesScreen(vm: SettingsViewModel, onBack: () -> Unit) {
                         Dialog(onDismissRequest = { showMathhabDialog = false }) {
                             Card(shape = RoundedCornerShape(16.dp)) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("مذهب وقت العصر", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                                    Text("مذهب وقت العصر", fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                                     Spacer(modifier = Modifier.height(8.dp))
                                     listOf("STANDARD" to "شافعي,حنبلي,مالكي (ظل مثل)", "HANAFI" to "حنفي (ظل مثلين)").forEach { (key, label) ->
                                         Row(modifier = Modifier.fillMaxWidth().clickable {
@@ -204,7 +204,7 @@ fun AzanTimesScreen(vm: SettingsViewModel, onBack: () -> Unit) {
                         Dialog(onDismissRequest = { summerDialog = false }) {
                             Card(shape = RoundedCornerShape(16.dp)) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("التوقيت الصيفي", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                                    Text("التوقيت الصيفي", fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                                     Spacer(modifier = Modifier.height(8.dp))
                                     listOf(0 to "إيقاف", 1 to "+1 ساعة", 2 to "+2 ساعة").forEach { (offset, label) ->
                                         Row(modifier = Modifier.fillMaxWidth().clickable {
@@ -483,7 +483,7 @@ fun ApproachScreen(vm: SettingsViewModel, onBack: () -> Unit) {
                                         )
                                     }
                                     Column(horizontalAlignment = Alignment.End) {
-                                        Text(name, fontWeight = FontWeight.Medium, textAlign = TextAlign.End)
+                                        Text(name, fontWeight = FontWeight.Medium, textAlign = TextAlign.End, color = Color(0xFF1A1A1A))
                                         Text(emojis[i], fontSize = 16.sp)
                                     }
                                 }
@@ -639,7 +639,7 @@ fun AzanScreenSettings(vm: SettingsViewModel, onBack: () -> Unit) {
                         horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Switch(checked = showScreen, onCheckedChange = { showScreen = it; save() },
                             colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AppRed))
-                        Text("عرض شاشة الأذان كاملة", fontWeight = FontWeight.Medium)
+                        Text("عرض شاشة الأذان كاملة", fontWeight = FontWeight.Medium, color = Color(0xFF1A1A1A))
                     }
                     SDivider()
                     // إيقاف تلقائي
@@ -647,7 +647,7 @@ fun AzanScreenSettings(vm: SettingsViewModel, onBack: () -> Unit) {
                         horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Switch(checked = autoStop, onCheckedChange = { autoStop = it; save() },
                             colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = AppRed))
-                        Text("إيقاف الأذان تلقائياً", fontWeight = FontWeight.Medium)
+                        Text("إيقاف الأذان تلقائياً", fontWeight = FontWeight.Medium, color = Color(0xFF1A1A1A))
                     }
                     if (autoStop) {
                         SDivider()
@@ -658,7 +658,7 @@ fun AzanScreenSettings(vm: SettingsViewModel, onBack: () -> Unit) {
                                 Text("$stopMinutes دقيقة", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                                 AdjustButton("+") { if (stopMinutes < 30) { stopMinutes++; save() } }
                             }
-                            Text("مدة الأذان", fontWeight = FontWeight.Medium)
+                            Text("مدة الأذان", fontWeight = FontWeight.Medium, color = Color(0xFF1A1A1A))
                         }
                     }
                 }
@@ -743,7 +743,7 @@ fun MoreSettings(vm: SettingsViewModel, onBack: () -> Unit) {
         Dialog(onDismissRequest = { showCalcDialog = false }) {
             Card(shape = RoundedCornerShape(16.dp)) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("طريقة الحساب", fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                    Text("طريقة الحساب", fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A), modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                     Spacer(modifier = Modifier.height(8.dp))
                     PrayerTimesCalculator.CalculationMethod.values().forEach { method ->
                         Row(modifier = Modifier.fillMaxWidth().clickable {
@@ -877,7 +877,7 @@ fun SRow(title: String, onClick: () -> Unit) {
     Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text("‹", fontSize = 20.sp, color = Color(0xFFBBBBBB))
-        Text(title, fontWeight = FontWeight.Medium)
+        Text(title, fontWeight = FontWeight.Medium, color = Color(0xFF1A1A1A))
     }
 }
 
@@ -887,7 +887,7 @@ fun SRowWithSub(title: String, sub: String, onClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
         Text("‹", fontSize = 20.sp, color = Color(0xFFBBBBBB))
         Column(horizontalAlignment = Alignment.End) {
-            Text(title, fontWeight = FontWeight.Medium)
+            Text(title, fontWeight = FontWeight.Medium, color = Color(0xFF1A1A1A))
             if (sub.isNotEmpty()) Text(sub, color = AppRed, fontSize = 13.sp)
         }
     }
@@ -915,3 +915,4 @@ fun AdjustButton(label: String, onClick: () -> Unit) {
         Text(label, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
     }
 }
+
