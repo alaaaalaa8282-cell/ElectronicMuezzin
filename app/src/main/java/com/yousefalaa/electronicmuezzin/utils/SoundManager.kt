@@ -36,7 +36,7 @@ object SoundManager {
     // أصوات الصلاة على النبي
     val SALAH_DOWNLOAD_URLS = mapOf(
         "salah_salli"          to "https://www.islamcan.com/audio/salah/salah1.mp3",
-        "salah_allahumma_salli"to "https://www.islamcan.com/audio/salah/salah2.mp3",
+        "salah_allahumma_salli" to "https://www.islamcan.com/audio/salah/salah2.mp3",
         "salah_ibrahim"        to "https://www.islamcan.com/audio/salah/salah3.mp3",
         "salah_quran"          to "https://www.islamcan.com/audio/salah/salah4.mp3",
         "salah_rassoul"        to "https://www.islamcan.com/audio/salah/salah5.mp3",
