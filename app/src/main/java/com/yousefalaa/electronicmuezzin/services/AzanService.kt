@@ -65,9 +65,9 @@ class AzanService : Service() {
 
         // شاشة الأذان الكاملة
         startActivity(Intent(this, AzanFullScreenActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra(EXTRA_PRAYER_NAME, prayerName)
-        })
+    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+    putExtra(EXTRA_PRAYER_NAME, prayerName)
+})
 
         return START_NOT_STICKY
     }
