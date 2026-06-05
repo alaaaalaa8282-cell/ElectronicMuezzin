@@ -1,4 +1,4 @@
-Enterpackage com.yousefalaa.electronicmuezzin.ui.components
+package com.yousefalaa.electronicmuezzin.ui.components
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
