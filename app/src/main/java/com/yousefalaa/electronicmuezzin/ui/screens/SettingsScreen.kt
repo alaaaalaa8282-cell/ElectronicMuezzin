@@ -23,6 +23,9 @@ import com.yousefalaa.electronicmuezzin.data.models.AzanSoundCatalog
 import com.yousefalaa.electronicmuezzin.data.models.RamadanSettings
 import com.yousefalaa.electronicmuezzin.ui.viewmodels.SettingsViewModel
 import com.yousefalaa.electronicmuezzin.utils.PrayerTimesCalculator
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch 
 
 val AppRed     = Color(0xFFD4573A)
 val AppGray    = Color(0xFFF2F2F7)
@@ -980,7 +983,7 @@ fun SoundPickerItem(
                             modifier = Modifier.size(32.dp)
                                 .background(Color(0xFFF0F0F0), androidx.compose.foundation.shape.CircleShape)
                                 .clickable {
-                                    rememberCoroutineScope().launch {
+                                    CoroutineScope(Dispatchers.IO).launch {
                                         isDownloading = true
                                         val ok = com.yousefalaa.electronicmuezzin.utils.SoundManager.download(
                                             context, sound.key, sound.url
