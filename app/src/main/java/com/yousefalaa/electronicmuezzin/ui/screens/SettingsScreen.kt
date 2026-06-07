@@ -922,7 +922,7 @@ fun AdjustButton(label: String, onClick: () -> Unit) {
 
 // ════════════════════════════════════════════════════════
 //  SoundPickerItem - عنصر اختيار الصوت مع تشغيل وتحميل
-// ════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════ 
 @Composable
 fun SoundPickerItem(
     sound     : com.yousefalaa.electronicmuezzin.data.models.AzanSound,
