@@ -972,4 +972,92 @@ fun SoundPickerItem(
                             CircularProgressIndicator(
                                 progress = { progress / 100f },
                                 modifier = Modifier.size(24.dp),
-                     
+                                color = AppRed, strokeWidth = 2.dp
+                            )
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier.size(32.dp)
+                                .background(Color(0xFFF0F0F0), androidx.compose.foundation.shape.CircleShape)
+                                .clickable {
+                                    scope.launch {
+                                        isDownloading = true
+                                        val ok = com.yousefalaa.electronicmuezzin.utils.SoundManager.download(
+                                            context, sound.key, sound.url
+                                        ) { p -> progress = p }
+                                        isDownloading = false
+                                        if (ok) isDownloaded = true
+                                    }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) { Text("⬇", color = AppRed, fontSize = 14.sp) }
+                    }
+                }
+            }
+        }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(horizontalAlignment = Alignment.End) {
+                Text(sound.label, color = Color(0xFF1A1A1A),
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    textAlign = TextAlign.End)
+                if (sound.url != null && !isDownloaded && !isDownloading)
+                    Text("اضغط ⬇ للتحميل", color = Color(0xFF888888), fontSize = 11.sp)
+            }
+            RadioButton(selected = isSelected, onClick = onSelect,
+                colors = RadioButtonDefaults.colors(selectedColor = AppRed))
+        }
+    }
+}
+
+// ════════════════════════════════════════════════════════
+//  SoundPickerScreen - شاشة اختيار الصوت الكاملة
+// ════════════════════════════════════════════════════════
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SoundPickerScreen(
+    title     : String,
+    sounds    : List<com.yousefalaa.electronicmuezzin.data.models.AzanSound>,
+    currentKey: String,
+    onSelect  : (String) -> Unit,
+    onBack    : () -> Unit
+) {
+    val grouped = sounds.groupBy { it.group }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(title, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A),
+                    modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.End) },
+                navigationIcon = { IconButton(onClick = onBack) {
+                    Text("›", fontSize = 28.sp, color = Color(0xFF1A1A1A)) } },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        }
+    ) { pad ->
+        androidx.compose.foundation.lazy.LazyColumn(
+            modifier = Modifier.fillMaxSize().background(AppGray).padding(pad)
+        ) {
+            grouped.forEach { (group, groupSounds) ->
+                if (group.isNotEmpty()) item {
+                    Text(group, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                        textAlign = TextAlign.End, color = Color(0xFF888888), fontSize = 13.sp)
+                }
+                item {
+                    Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(12.dp)) {
+                        Column {
+                            groupSounds.forEachIndexed { i, sound ->
+                                SoundPickerItem(sound = sound, isSelected = currentKey == sound.key,
+                                    onSelect = { onSelect(sound.key) })
+                                if (i < groupSounds.size - 1)
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = Color(0xFFEEEEEE))
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+            item { Spacer(modifier = Modifier.height(24.dp)) }
+        }
+    }
+}
