@@ -64,9 +64,9 @@ class AzanService : Service() {
         requestAudioFocus { playAzan(azanSound) }
 
         // شاشة الأذان الكاملة
-        startActivity(Intent(this, AzanFullScreenActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra(EXTRA_PRAYER_NAME, prayerName)
+        startActivity(Intent(this, AzanFullScreenActivity::class.java).also { i ->
+            i.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            i.putExtra(EXTRA_PRAYER_NAME, prayerName)
         })
 
         return START_NOT_STICKY
