@@ -980,7 +980,7 @@ fun SoundPickerItem(
                             modifier = Modifier.size(32.dp)
                                 .background(Color(0xFFF0F0F0), androidx.compose.foundation.shape.CircleShape)
                                 .clickable {
-                                    scope.launch {
+                                    rememberCoroutineScope().launch {
                                         isDownloading = true
                                         val ok = com.yousefalaa.electronicmuezzin.utils.SoundManager.download(
                                             context, sound.key, sound.url
