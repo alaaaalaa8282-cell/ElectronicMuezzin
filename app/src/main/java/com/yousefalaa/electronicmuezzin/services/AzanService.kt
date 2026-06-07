@@ -30,6 +30,7 @@ class AzanService : Service() {
             val intent = Intent(context, AzanService::class.java).apply {
                 putExtra(EXTRA_PRAYER_NAME, prayerName)
                 putExtra(EXTRA_AZAN_SOUND, azanSound)
+                putExtra("from_alarm", true)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 context.startForegroundService(intent)
@@ -59,15 +60,21 @@ class AzanService : Service() {
 
         if (azanSound == "silent_mode") { stopSelf(); return START_NOT_STICKY }
 
+        // لو intent == null معناه Android أعاد تشغيل الـ Service تلقائياً — لا نشغّل أذان
+        if (intent == null) { stopSelf(); return START_NOT_STICKY }
+
         startForeground(NOTIF_ID, buildNotification(prayerName))
         wakeLock?.acquire(10 * 60 * 1000L)
         requestAudioFocus { playAzan(azanSound) }
 
-        // شاشة الأذان الكاملة
-        startActivity(Intent(this, AzanFullScreenActivity::class.java).also { i ->
-            i.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            i.putExtra(EXTRA_PRAYER_NAME, prayerName)
-        })
+        // شاشة الأذان الكاملة — بس لو جاي من alarm حقيقي
+        val fromAlarm = intent.getBooleanExtra("from_alarm", false)
+        if (fromAlarm) {
+            startActivity(Intent(this, AzanFullScreenActivity::class.java).also { i ->
+                i.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                i.putExtra(EXTRA_PRAYER_NAME, prayerName)
+            })
+        }
 
         return START_NOT_STICKY
     }
