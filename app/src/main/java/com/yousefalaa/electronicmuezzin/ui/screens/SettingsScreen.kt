@@ -19,6 +19,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.yousefalaa.electronicmuezzin.data.models.PrayerNames
+import com.yousefalaa.electronicmuezzin.data.models.AzanSoundCatalog
 import com.yousefalaa.electronicmuezzin.data.models.RamadanSettings
 import com.yousefalaa.electronicmuezzin.ui.viewmodels.SettingsViewModel
 import com.yousefalaa.electronicmuezzin.utils.PrayerTimesCalculator
@@ -916,3 +917,59 @@ fun AdjustButton(label: String, onClick: () -> Unit) {
     }
 }
 
+// استخدم SoundPickerScreen من components بدل MuezzinPickerScreen
+// (MuezzinPickerScreen لا تزال موجودة للتوافق)
+
+// ════════════════════════════════════════════════════════
+//  SoundPickerItem - عنصر اختيار الصوت مع تشغيل وتحميل
+// ════════════════════════════════════════════════════════
+@Composable
+fun SoundPickerItem(
+    sound     : com.yousefalaa.electronicmuezzin.data.models.AzanSound,
+    isSelected: Boolean,
+    onSelect  : () -> Unit
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope   = rememberCoroutineScope()
+    var isPlaying     by remember { mutableStateOf(false) }
+    var isDownloading by remember { mutableStateOf(false) }
+    var progress      by remember { mutableStateOf(0) }
+    var isDownloaded  by remember { mutableStateOf(false) }
+
+    LaunchedEffect(sound.key) {
+        if (sound.key.isNotEmpty())
+            isDownloaded = com.yousefalaa.electronicmuezzin.utils.SoundManager.isDownloaded(context, sound.key)
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onSelect)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (sound.key.isNotEmpty() && sound.key != "silent_mode") {
+                if (isDownloaded) {
+                    Box(
+                        modifier = Modifier.size(32.dp)
+                            .background(if (isPlaying) AppRed.copy(alpha = 0.2f) else Color.Transparent,
+                                androidx.compose.foundation.shape.CircleShape)
+                            .clickable {
+                                if (isPlaying) {
+                                    com.yousefalaa.electronicmuezzin.utils.SoundManager.stop()
+                                    isPlaying = false
+                                } else {
+                                    com.yousefalaa.electronicmuezzin.utils.SoundManager.stop()
+                                    com.yousefalaa.electronicmuezzin.utils.SoundManager.play(context, sound.key)
+                                    isPlaying = true
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) { Text(if (isPlaying) "⏹" else "▶", color = AppRed, fontSize = 16.sp) }
+                } else if (sound.url != null) {
+                    if (isDownloading) {
+                        Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(
+                                progress = { progress / 100f },
+                                modifier = Modifier.size(24.dp),
+                     
