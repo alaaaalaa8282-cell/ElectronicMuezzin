@@ -65,9 +65,9 @@ class AzanService : Service() {
 
         // شاشة الأذان الكاملة
         startActivity(Intent(this, AzanFullScreenActivity::class.java).apply {
-    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-    putExtra(EXTRA_PRAYER_NAME, prayerName)
-})
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(EXTRA_PRAYER_NAME, prayerName)
+        })
 
         return START_NOT_STICKY
     }
@@ -162,4 +162,3 @@ class AzanService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onDestroy() { stopAzan(); super.onDestroy() }
 }
-
